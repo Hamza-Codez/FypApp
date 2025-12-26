@@ -1,26 +1,225 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Colors */
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222 47% 8%);
+  
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(222 47% 8%);
+  
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(222 47% 8%);
+  
+  --color-primary: hsl(225 73% 50%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  
+  --color-secondary: hsl(215 19% 35%);
+  --color-secondary-foreground: hsl(0 0% 100%);
+  
+  --color-muted: hsl(215 20% 94%);
+  --color-muted-foreground: hsl(215 16% 47%);
+  
+  --color-accent: hsl(225 73% 57%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  
+  --color-destructive: hsl(0 84% 60%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  
+  --color-border: hsl(215 20% 88%);
+  --color-input: hsl(215 20% 88%);
+  --color-ring: hsl(225 73% 50%);
+  
+  /* Custom colors */
+  --color-royal-blue: hsl(225 73% 50%);
+  --color-royal-blue-light: hsl(225 73% 65%);
+  --color-royal-blue-dark: hsl(225 73% 40%);
+  --color-slate: hsl(215 19% 35%);
+  --color-slate-light: hsl(215 16% 47%);
+  --color-slate-dark: hsl(222 47% 8%);
+  
+  /* Charts */
+  --color-chart-1: hsl(225 73% 50%);
+  --color-chart-2: hsl(215 19% 35%);
+  --color-chart-3: hsl(225 73% 70%);
+  --color-chart-4: hsl(215 20% 65%);
+  --color-chart-5: hsl(222 47% 20%);
+  
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  
+  /* Font families */
+  --font-family-sans: 'Roboto', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-mono: 'SF Mono', ui-monospace, Menlo, Monaco, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --color-background: hsl(222 47% 6%);
+  --color-foreground: hsl(0 0% 98%);
+  
+  --color-card: hsl(222 47% 10%);
+  --color-card-foreground: hsl(0 0% 98%);
+  
+  --color-popover: hsl(222 47% 10%);
+  --color-popover-foreground: hsl(0 0% 98%);
+  
+  --color-primary: hsl(225 73% 57%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  
+  --color-secondary: hsl(215 19% 45%);
+  --color-secondary-foreground: hsl(0 0% 100%);
+  
+  --color-muted: hsl(222 47% 16%);
+  --color-muted-foreground: hsl(215 20% 65%);
+  
+  --color-accent: hsl(225 73% 60%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  
+  --color-destructive: hsl(0 72% 50%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  
+  --color-border: hsl(222 47% 20%);
+  --color-input: hsl(222 47% 20%);
+  --color-ring: hsl(225 73% 57%);
+  
+  --color-chart-1: hsl(225 73% 57%);
+  --color-chart-2: hsl(215 25% 60%);
+  --color-chart-3: hsl(222 47% 40%);
+  --color-chart-4: hsl(210 40% 80%);
+  --color-chart-5: hsl(225 60% 70%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base styles */
+* {
+  border-color: hsl(var(--color-border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: hsl(var(--color-background));
+  color: hsl(var(--color-foreground));
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-sans);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Custom utility classes */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, hsl(var(--color-primary)), hsl(var(--color-accent)));
+}
+
+.text-gradient-blue {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, hsl(var(--color-primary)), hsl(var(--color-accent)), hsl(var(--color-primary)));
+}
+
+.bg-gradient-hero {
+  background: linear-gradient(135deg, hsl(var(--color-slate-dark)) 0%, hsl(222 47% 12%) 50%, hsl(var(--color-slate-dark)) 100%);
+}
+
+.bg-gradient-card {
+  background: linear-gradient(180deg, hsl(var(--color-card)) 0%, hsl(var(--color-background)) 100%);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--color-primary)) 0%, hsl(var(--color-royal-blue-dark)) 100%);
+}
+
+.shadow-primary {
+  box-shadow: 0 4px 14px 0 hsl(225 73% 50% / 0.25);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: hsl(var(--color-card) / 0.95);
+  border: 1px solid hsl(var(--color-border) / 0.5);
+}
+
+.glass-dark {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: hsl(var(--color-slate-dark) / 0.9);
+  border: 1px solid hsl(var(--color-border) / 0.2);
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  transform: translateY(-4px);
+}
+
+/* Keyframe animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 20px hsl(225 73% 50% / 0.3); }
+  to { box-shadow: 0 0 40px hsl(225 73% 50% / 0.5); }
 }
