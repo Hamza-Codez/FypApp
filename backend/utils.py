@@ -19,9 +19,16 @@ ALGORITHM = os.environ.get("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 def verify_password(plain_password, hashed_password):
+    # bcrypt has a 72-byte limit, so we truncate the password for verification
+    if len(plain_password) > 50:
+        plain_password = plain_password[:50]
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
+    # bcrypt has a 72-byte limit, so we truncate the password to ensure it's within limits
+    # Truncate to 50 characters to be safe (well under 72 bytes for most encodings)
+    if len(password) > 50:
+        password = password[:50]
     return pwd_context.hash(password)
 
 def create_access_token(data: dict):

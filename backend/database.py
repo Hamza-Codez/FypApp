@@ -1,10 +1,10 @@
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from dotenv import load_dotenv
+from motor.motor_asyncio import AsyncIOMotorClient
 
-load_dotenv()
+load_dotenv(".env.local")
 
-MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+MONGODB_URL = os.getenv("MONGODB_URL")
 DATABASE_NAME = os.getenv("DATABASE_NAME", "office_management")
 
 client = AsyncIOMotorClient(MONGODB_URL)
