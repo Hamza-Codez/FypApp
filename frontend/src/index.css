@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+* {
+    font-family: 'Outfit', sans-serif;
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+@layer base {
+    body {
+        @apply bg-slate-50 text-slate-900 selection:bg-blue-500/30;
+    }
+
+    .dark body {
+        @apply bg-[#0f172a] text-slate-100;
+    }
+
+    button {
+        @apply active:scale-95 transition-transform;
+        cursor: pointer;
+    }
+
+    /* Custom Scrollbar - Thinner & Floating style */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 20px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Interactive Inputs */
+    input[type="checkbox"] {
+        @apply relative appearance-none w-5 h-5 rounded-md border-2 border-slate-300 
+                checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer;
+    }
+
+    /* Adding a checkmark icon via CSS */
+    input[type="checkbox"]:checked::after {
+        content: '';
+        @apply absolute left-1.5 top-0.5 w-1.5 h-3 border-white border-b-2 border-r-2 rotate-45;
+    }
+
+    .dark input[type="checkbox"] {
+        @apply border-slate-700 bg-slate-800;
+    }
+
+    /* Date Picker Fix */
+    .dark input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.8) brightness(1.2);
+    }
+}
+
+/* Glassmorphism Utility */
+@layer components {
+    .glass-card {
+        @apply bg-white/70 backdrop-blur-md border border-white/0 shadow-xl;
+    }
+    
+    .dark .glass-card {
+        @apply bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 shadow-2xl;
+    }
+}
+
+
+body:not(.dark) .border,
+body:not(.dark) .border-zinc-200,
+body:not(.dark) .border-gray-200,
+body:not(.dark) .border-slate-300 {
+    border-color: #5f5f5f8a !important; /* slate-300 */
+}
+
+/* border-color: #8e86868a !important; slate-300 */

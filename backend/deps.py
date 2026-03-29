@@ -1,0 +1,46 @@
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from database import users_collection, user_helper
+from utils import SECRET_KEY, ALGORITHM
+from bson import ObjectId
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+        
+    user = await users_collection.find_one({"username": username})
+    if user is None:
+        raise credentials_exception
+    
+    # Transform to dict
+    currentUser = user_helper(user)
+    
+    # If the user is an employee, fetch the org logo from who created them (HR)
+    if currentUser.get("role") == "EMPLOYEE" and currentUser.get("created_by"):
+        hr_user = await users_collection.find_one({"_id": ObjectId(currentUser["created_by"])})
+        if hr_user and hr_user.get("org_logo"):
+            currentUser["org_logo"] = hr_user.get("org_logo")
+            
+    return currentUser
+
+async def get_current_hr_user(current_user: dict = Depends(get_current_user)):
+    print(f"DEBUG: Current user role: {current_user.get('role')}")
+    if current_user.get("role") != "HR":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges"
+        )
+    return current_user

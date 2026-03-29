@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+motor
+pydantic
+pydantic[email]
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv
+cloudinary
+fastapi-mail
+python-multipart
+pandas
+groq
+pymupdf
+python-docx
+langchain
+langchain-groq
