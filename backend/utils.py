@@ -31,12 +31,16 @@ def get_password_hash(password):
         password = password[:50]
     return pwd_context.hash(password)
 
-def create_access_token(data: dict):
+def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 # Cloudinary configuration
 cloudinary.config(
@@ -67,19 +71,159 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True
 )
 
-async def send_welcome_email(email: EmailStr, password: str, first_name: str, role: str):
+async def send_welcome_email(email: EmailStr, password: str, first_name: str, role: str, organization_name: str = "Office Management System"):
     html = f"""
-    <p>Hi {first_name},</p>
-    <p>Welcome to our Office Management System!</p>
-    <p>Your account has been created successfully with the role <b>{role}</b>.</p>
-    <p>Your temporary password is: <b>{password}</b></p>
-    <p>Please login and change your password as soon as possible.</p>
-    <br>
-    <p>Best regards,<br>The HR Team</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {{ 
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f8fafc; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-font-smoothing: antialiased; 
+        }}
+        .container {{ 
+            max-width: 600px; 
+            margin: 40px auto; 
+            background-color: #ffffff; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); 
+            border: 1px solid #e2e8f0; 
+        }}
+        .header {{ 
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
+            padding: 40px 30px; 
+            text-align: center; 
+            color: #ffffff; 
+        }}
+        .logo-circle {{ 
+            background-color: rgba(255, 255, 255, 0.2); 
+            color: #ffffff; 
+            width: 56px; 
+            height: 56px; 
+            line-height: 56px; 
+            border-radius: 16px; 
+            display: inline-block; 
+            font-weight: 800; 
+            font-size: 28px; 
+            margin-bottom: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+        }}
+        .content {{ 
+            padding: 40px; 
+            color: #334155; 
+            line-height: 1.6; 
+        }}
+        .greeting {{ 
+            font-size: 22px; 
+            font-weight: 600; 
+            color: #1e293b; 
+            margin-bottom: 24px; 
+        }}
+        .card {{ 
+            background-color: #f8fafc; 
+            border-radius: 12px; 
+            padding: 24px; 
+            margin: 32px 0; 
+            border: 1px solid #e2e8f0; 
+        }}
+        .credential-group {{
+            margin-bottom: 20px;
+        }}
+        .credential-group:last-child {{
+            margin-bottom: 0;
+        }}
+        .credential-label {{ 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em; 
+            color: #64748b; 
+            font-weight: 700; 
+            margin-bottom: 6px; 
+        }}
+        .credential-value {{ 
+            font-size: 16px; 
+            font-weight: 600; 
+            color: #0f172a; 
+        }}
+        .password-value {{
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #eff6ff;
+            color: #2563eb;
+            padding: 4px 8px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }}
+        .footer {{ 
+            padding: 30px; 
+            text-align: center; 
+            font-size: 13px; 
+            color: #94a3b8; 
+            background-color: #f1f5f9;
+            border-top: 1px solid #e2e8f0; 
+        }}
+        .security-note {{ 
+            font-size: 13px; 
+            color: #64748b; 
+            margin-top: 32px; 
+            padding: 16px;
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+        }}
+        @media only screen and (max-width: 600px) {{
+            .container {{ margin: 0; border-radius: 0; }}
+            .content {{ padding: 30px 20px; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-circle">{organization_name[0] if organization_name else 'O'}</div>
+            <h1 style="margin:0; font-size: 24px; font-weight: 700; letter-spacing: -0.025em;">{organization_name}</h1>
+        </div>
+        <div class="content">
+            <p class="greeting">Hi {first_name},</p>
+            <p>Welcome aboard! Your professional account for <strong>{organization_name}</strong> has been successfully created. You can now access the dashboard as a <strong>{role}</strong>.</p>
+            
+            <div class="card">
+                <div class="credential-group">
+                    <div class="credential-label">Login Email</div>
+                    <div class="credential-value">{email}</div>
+                </div>
+                
+                <div class="credential-group">
+                    <div class="credential-label">Temporary Password</div>
+                    <div class="credential-value password-value">{password}</div>
+                </div>
+            </div>
+
+            <p style="margin-top: 32px; text-align: center;">
+                <a href="https://yourdashboardurl.com" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);">Launch Dashboard</a>
+            </p>
+
+            <div class="security-note">
+                <strong>Security Reminder:</strong> Please ensure you change your temporary password immediately upon your first login to keep your account secure.
+            </div>
+        </div>
+        <div class="footer">
+            &copy; 2026 {organization_name}. All rights reserved.<br>
+            Sent by the HR Management System.
+        </div>
+    </div>
+</body>
+</html>
     """
 
     message = MessageSchema(
-        subject="Welcome to our Organization",
+        subject=f"Welcome to {organization_name}",
         recipients=[email],
         body=html,
         subtype="html"
@@ -90,3 +234,4 @@ async def send_welcome_email(email: EmailStr, password: str, first_name: str, ro
         await fm.send_message(message)
     except Exception as e:
         print("Error sending email:", e)
+

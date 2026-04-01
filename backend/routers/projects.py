@@ -26,7 +26,16 @@ async def get_projects(current_user: dict = Depends(get_current_user)):
     if current_user["role"] == "HR":
         cursor = projects_collection.find({"created_by": current_user["id"]})
     else:
-        cursor = projects_collection.find({"assigned_to": current_user["id"]})
+        # Projects explicitly assigned to them OR projects where they have a task
+        assigned_tasks = await tasks_collection.find({"assigned_to": current_user["id"]}).to_list(length=None)
+        project_ids_from_tasks = [t["project_id"] for t in assigned_tasks]
+        
+        cursor = projects_collection.find({
+            "$or": [
+                {"assigned_to": current_user["id"]},
+                {"_id": {"$in": project_ids_from_tasks}}
+            ]
+        })
         
     projects = []
     async for doc in cursor:
@@ -66,7 +75,7 @@ async def create_task(task: TaskCreate, current_user: dict = Depends(get_current
     # Store project_id as ObjectId for consistency
     task_dict["project_id"] = ObjectId(task.project_id)
     task_dict.update({
-        "status": "PENDING",
+        "status": task.status or "TODO",
         "comments": [],
         "created_at": datetime.utcnow()
     })

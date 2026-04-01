@@ -51,6 +51,26 @@ export const uploadEmployeesCSV = createAsyncThunk('workspace/uploadEmployeesCSV
     }
 });
 
+export const deleteEmployee = createAsyncThunk('workspace/deleteEmployee', async (employeeId, { rejectWithValue, dispatch }) => {
+    try {
+        const response = await api.delete(`/users/employee/${employeeId}`);
+        dispatch(fetchEmployees());
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
+export const deleteAllEmployees = createAsyncThunk('workspace/deleteAllEmployees', async (_, { rejectWithValue, dispatch }) => {
+    try {
+        const response = await api.delete('/users/employees/all');
+        dispatch(fetchEmployees());
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
 export const updateTaskStatus = createAsyncThunk('workspace/updateTaskStatus', async ({ taskId, status }, { rejectWithValue, dispatch }) => {
     try {
         const response = await api.put(`/projects/tasks/${taskId}/status`, { status });

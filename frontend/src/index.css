@@ -6,7 +6,7 @@
     transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+    @custom-variant dark (&:where(.dark, .dark *));
 
 /* Hide scrollbar but keep functionality */
 .no-scrollbar {
@@ -53,20 +53,24 @@
         background: #94a3b8;
     }
 
-    /* Interactive Inputs */
+    /* Interactive Inputs - Premium Custom Checkbox */
     input[type="checkbox"] {
-        @apply relative appearance-none w-5 h-5 rounded-md border-2 border-slate-300 
-                checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer;
+        @apply relative appearance-none w-[18px] h-[18px] rounded-md border border-zinc-300 dark:border-zinc-700
+                bg-white dark:bg-zinc-900 checked:bg-blue-600 checked:border-blue-600 
+                transition-all cursor-pointer hover:border-blue-400 active:scale-90;
     }
 
-    /* Adding a checkmark icon via CSS */
+    /* Checkmark centering and sizing */
     input[type="checkbox"]:checked::after {
         content: '';
-        @apply absolute left-1.5 top-0.5 w-1.5 h-3 border-white border-b-2 border-r-2 rotate-45;
-    }
-
-    .dark input[type="checkbox"] {
-        @apply border-slate-700 bg-slate-800;
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        width: 4px;
+        height: 8px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
     }
 
     /* Date Picker Fix */
@@ -78,11 +82,19 @@
 /* Glassmorphism Utility */
 @layer components {
     .glass-card {
-        @apply bg-white/70 backdrop-blur-md border border-white/0 shadow-xl;
+        @apply bg-white/70 backdrop-blur-md border border-slate-200 shadow-sm rounded-lg;
     }
     
     .dark .glass-card {
-        @apply bg-slate-900/60 backdrop-blur-lg border border-slate-700/50 shadow-2xl;
+        @apply bg-zinc-900/60 backdrop-blur-lg border border-zinc-700/50 shadow-lg rounded-lg;
+    }
+
+    .glass-btn {
+        @apply bg-slate-800/90 text-white backdrop-blur-md border border-slate-700 hover:bg-slate-700 shadow-sm rounded-md transition-all;
+    }
+
+    .dark .glass-btn {
+        @apply bg-white/10 text-white border-white/20 hover:bg-white/20;
     }
 }
 

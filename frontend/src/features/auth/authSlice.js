@@ -6,9 +6,19 @@ export const login = createAsyncThunk('auth/login', async (credentials, { reject
         const formData = new FormData();
         formData.append('username', credentials.username);
         formData.append('password', credentials.password);
+        formData.append('remember_me', credentials.rememberMe ? 'true' : 'false');
         const response = await api.post('/auth/login', formData);
-        localStorage.setItem('token', response.data.access_token);
-        localStorage.setItem('role', response.data.role);
+
+        
+        // Handle persistent vs session storage
+        const storage = credentials.rememberMe ? localStorage : sessionStorage;
+        const otherStorage = credentials.rememberMe ? sessionStorage : localStorage;
+        otherStorage.removeItem('token');
+        otherStorage.removeItem('role');
+
+        storage.setItem('token', response.data.access_token);
+        storage.setItem('role', response.data.role);
+        
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data);
@@ -67,8 +77,8 @@ export const changePassword = createAsyncThunk('auth/changePassword', async (pas
 
 const initialState = {
     user: null,
-    token: localStorage.getItem('token'),
-    role: localStorage.getItem('role'),
+    token: localStorage.getItem('token') || sessionStorage.getItem('token'),
+    role: localStorage.getItem('role') || sessionStorage.getItem('role'),
     loading: false,
     error: null,
 };
@@ -83,6 +93,8 @@ const authSlice = createSlice({
             state.role = null;
             localStorage.removeItem('token');
             localStorage.removeItem('role');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('role');
         },
     },
     extraReducers: (builder) => {

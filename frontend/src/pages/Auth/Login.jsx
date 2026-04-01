@@ -7,6 +7,8 @@ import toast from 'react-hot-toast';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { loading } = useSelector((state) => state.auth);
@@ -17,7 +19,7 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const resultAction = await dispatch(login(credentials));
+        const resultAction = await dispatch(login({ ...credentials, rememberMe }));
         if (login.fulfilled.match(resultAction)) {
             toast.success('Welcome back!');
             navigate('/dashboard');
@@ -48,46 +50,69 @@ const Login = () => {
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div className="space-y-4">
-                            <div className="relative group">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-zinc-400 group-focus-within:text-blue-600 transition-colors" />
-                                <input
-                                    name="username"
-                                    type="text"
-                                    required
-                                    className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none transition-all dark:text-white"
-                                    placeholder="Username or Email"
-                                    value={credentials.username}
-                                    onChange={handleChange}
-                                />
+                            {/* Username Box */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-4 bg-white dark:bg-zinc-950 focus-within:border-blue-500 transition-all shadow-sm">
+                                <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest block mb-1">Username or Email</label>
+                                <div className="relative group">
+                                    <User className="absolute left-0 top-1/2 -translate-y-1/2 size-4 text-zinc-300 group-focus-within:text-blue-500 transition-colors" />
+                                    <input
+                                        name="username"
+                                        type="text"
+                                        required
+                                        className="w-full pl-6 bg-transparent text-sm font-semibold text-zinc-900 dark:text-white placeholder:text-zinc-200 outline-none"
+                                        placeholder="Enter your username"
+                                        value={credentials.username}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
-                            <div className="relative group">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-zinc-400 group-focus-within:text-blue-600 transition-colors" />
-                                <input
-                                    name="password"
-                                    type="password"
-                                    required
-                                    className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none transition-all dark:text-white"
-                                    placeholder="Password"
-                                    value={credentials.password}
-                                    onChange={handleChange}
-                                />
+
+                            {/* Password Box */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-4 bg-white dark:bg-zinc-950 focus-within:border-blue-500 transition-all shadow-sm">
+                                <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest block mb-1">Password Identifier</label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-0 top-1/2 -translate-y-1/2 size-4 text-zinc-300 group-focus-within:text-blue-500 transition-colors" />
+                                    <input
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        className="w-full pl-6 bg-transparent text-sm font-semibold text-zinc-900 dark:text-white placeholder:text-zinc-200 outline-none"
+                                        placeholder="••••••••"
+                                        value={credentials.password}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-xs font-semibold">
-                            <label className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 cursor-pointer">
-                                <input type="checkbox" className="size-4 rounded border-zinc-300 accent-blue-600" />
-                                Remember me
+                        <div className="flex flex-col gap-3 text-xs font-semibold">
+                            <label className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 cursor-pointer group">
+                                <input 
+                                    type="checkbox" 
+                                    checked={showPassword}
+                                    onChange={(e) => setShowPassword(e.target.checked)}
+                                />
+                                <span className="group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">Show Password</span>
                             </label>
-                            <a href="#" className="text-blue-600 hover:text-blue-700">Forgot password?</a>
+                            <div className="flex items-center justify-between">
+                                <label className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 cursor-pointer group">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                    />
+                                    <span className="group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">Remember me</span>
+                                </label>
+                                <a href="#" className="text-blue-600 hover:text-blue-700">Forgot password?</a>
+                            </div>
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase tracking-widest text-[11px] py-4 rounded-md shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
                         >
-                            {loading ? <Loader2 className="size-5 animate-spin" /> : 'Sign in'}
+                            {loading ? <Loader2 className="size-4 animate-spin" /> : 'Sign into Workspace'}
                         </button>
                     </form>
 

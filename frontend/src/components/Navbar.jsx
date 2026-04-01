@@ -1,4 +1,5 @@
 import { SearchIcon, PanelLeft, MoonIcon, SunIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { toggleTheme } from '../features/themeSlice'
 import { logout } from '../features/auth/authSlice'
@@ -7,8 +8,14 @@ import { assets } from '../assets/assets'
 const Navbar = ({ setIsSidebarOpen }) => {
 
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { theme } = useSelector(state => state.theme);
     const { user } = useSelector(state => state.auth);
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/');
+    }
 
     return (
         <div className="w-full bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-6 xl:px-16 py-3 flex-shrink-0">
@@ -50,7 +57,7 @@ const Navbar = ({ setIsSidebarOpen }) => {
                                 <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">{user.role}</p>
                             </div>
                             <img src={user.profile_image || assets.user_avatar} alt="Profile" className="size-9 rounded-full bg-gray-100 object-cover" />
-                            <button onClick={() => dispatch(logout())} className="text-xs font-medium text-red-500 hover:text-red-400 transition ml-2">Logout</button>
+                            <button onClick={handleLogout} className="text-xs font-medium text-red-500 hover:text-red-400 transition ml-2">Logout</button>
                         </div>
                     )}
                     

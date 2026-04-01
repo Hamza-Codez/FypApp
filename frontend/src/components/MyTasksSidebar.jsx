@@ -15,8 +15,9 @@ function MyTasksSidebar() {
 
     const getTaskStatusColor = (status) => {
         switch (status) {
-            case 'DONE':
+            case 'COMPLETED':
                 return 'bg-green-500';
+
             case 'IN_PROGRESS':
                 return 'bg-yellow-500';
             case 'TODO':

@@ -6,7 +6,7 @@ class User(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
-    username: str
+    username: Optional[str] = None
     gender: Optional[str]
     age: Optional[int]
     organization_name: Optional[str]
@@ -18,6 +18,7 @@ class User(BaseModel):
     profile_image: Optional[str]
     org_logo: Optional[str]
     created_by: Optional[str] # for employees
+    salary_pkr: Optional[float] = None
 
 class Token(BaseModel):
     access_token: str
@@ -32,11 +33,13 @@ class EmployeeCreate(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
-    username: str
+    username: Optional[str] = None
     contact_info: Optional[str] = None
     gender: Optional[str] = None
     age: Optional[int] = None
     password: Optional[str] = None # Or generated automatically
+    salary_pkr: Optional[float] = None
+    role: Optional[str] = "EMPLOYEE"
 
 class ProjectCreate(BaseModel):
     name: str
@@ -48,14 +51,15 @@ class ProjectCreate(BaseModel):
     end_date: Optional[str] = None
 
 class ProjectUpdate(BaseModel):
-    name: Optional[str]
-    description: Optional[str]
-    assigned_to: Optional[List[str]]
-    status: Optional[str]
-    priority: Optional[str]
-    start_date: Optional[str]
-    end_date: Optional[str]
-    progress: Optional[float]
+    name: Optional[str] = None
+    description: Optional[str] = None
+    assigned_to: Optional[List[str]] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    progress: Optional[float] = None
+
 
 class TaskCreate(BaseModel):
     project_id: str
@@ -63,6 +67,7 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
     type: Optional[str] = "TASK"
     priority: Optional[str] = "MEDIUM"
+    status: Optional[str] = "TODO"
     due_date: Optional[str] = None
     assigned_to: Optional[List[str]] = []
 

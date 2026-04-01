@@ -65,7 +65,10 @@ async def register_hr(
     return {"message": "HR registered successfully", "user": user_helper(created_user)}
 
 @router.post("/login", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    remember_me: bool = Form(False)
+):
     user = await users_collection.find_one({"username": form_data.username})
     if not user and "@" in form_data.username:
         user = await users_collection.find_one({"email": form_data.username})
@@ -77,13 +80,22 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
         
-    access_token = create_access_token(data={"sub": user["username"]})
+    from datetime import timedelta
+    expires_delta = None
+    if remember_me:
+        expires_delta = timedelta(days=7)
+        
+    access_token = create_access_token(
+        data={"sub": user["username"]},
+        expires_delta=expires_delta
+    )
     return {
         "access_token": access_token, 
         "token_type": "bearer", 
         "role": user.get("role"),
         "user": user_helper(user)
     }
+
 
 @router.get("/me")
 async def read_users_me(current_user: dict = Depends(get_current_user)):

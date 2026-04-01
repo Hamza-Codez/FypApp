@@ -1,5 +1,14 @@
 # Create a Office Management application
 
+## Run Project
+
+- cd frontend
+- npm run dev
+
+- cd backend
+- venv\Scripts\activate
+- uvicorn main:app --reload
+
 ## features
 
 - create a dual login interface one for HR(admin) and One for orgainization employees

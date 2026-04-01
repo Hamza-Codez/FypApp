@@ -12,6 +12,7 @@ import SignupHR from "./pages/Auth/SignupHR";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { fetchMe } from "./features/auth/authSlice";
+import { loadTheme } from "./features/themeSlice";
 import { LayoutDashboardIcon, FolderOpenIcon, UsersIcon, SettingsIcon, BrainCircuitIcon } from 'lucide-react';
 import Home from "./pages/Home";
 
@@ -19,7 +20,7 @@ import Profile from "./pages/Profile";
 
 const ProtectedRoute = ({ children }) => {
     const { token } = useSelector((state) => state.auth);
-    if (!token) return <Navigate to="/login" />;
+    if (!token) return <Navigate to="/" />;
     return children;
 };
 
@@ -28,6 +29,7 @@ const App = () => {
     const { token, user } = useSelector((state) => state.auth);
 
     useEffect(() => {
+        dispatch(loadTheme());
         if (token && !user) {
             dispatch(fetchMe());
         }

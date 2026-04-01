@@ -7,7 +7,7 @@ import ProjectSettings from "../components/ProjectSettings";
 import CreateTaskDialog from "../components/CreateTaskDialog";
 import ProjectCalendar from "../components/ProjectCalendar";
 import ProjectTasks from "../components/ProjectTasks";
-import { fetchProjects } from "../features/workspaceSlice";
+import { fetchProjects, fetchEmployees } from "../features/workspaceSlice";
 
 export default function ProjectDetail() {
     const dispatch = useDispatch();
@@ -27,6 +27,7 @@ export default function ProjectDetail() {
         if (projects.length === 0) {
             dispatch(fetchProjects());
         }
+        dispatch(fetchEmployees());
     }, [dispatch, projects.length]);
 
     useEffect(() => {
@@ -63,12 +64,9 @@ export default function ProjectDetail() {
             {/* Header */}
             <div className="flex max-md:flex-col gap-4 flex-wrap items-start justify-between max-w-6xl">
                 <div className="flex items-center gap-4">
-                    <button className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400" onClick={() => navigate('/projects')}>
-                        <ArrowLeftIcon className="w-4 h-4" />
-                    </button>
                     <div className="flex items-center gap-3">
-                        <h1 className="text-xl font-medium">{project.name}</h1>
-                        <span className={`px-2 py-1 rounded text-xs capitalize ${statusColors[project.status] || statusColors.ACTIVE}`} >
+                        <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">{project.name}</h1>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${statusColors[project.status] || statusColors.ACTIVE}`} >
                             {project.status?.replace("_", " ") || 'Active'}
                         </span>
                     </div>
@@ -76,9 +74,9 @@ export default function ProjectDetail() {
                 {((user?.role?.toUpperCase() === 'HR') || (project?.assigned_to?.includes(user?.id))) && (
                     <button 
                         onClick={() => setShowCreateTask(true)} 
-                        className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:scale-105 transition-all shadow-lg shadow-blue-500/20 active:scale-95" 
+                        className="flex items-center gap-2 px-8 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all" 
                     >
-                        <PlusIcon className="size-4 stroke-[3]" />
+                        <PlusIcon className="size-3.5 stroke-[4]" />
                         New Task
                     </button>
                 )}
@@ -87,55 +85,59 @@ export default function ProjectDetail() {
             {/* Info Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {[
-                    { label: "Total Tasks", value: tasks.length, color: "text-zinc-900 dark:text-white" },
-                    { label: "Completed", value: tasks.filter((t) => t.status === "DONE").length, color: "text-emerald-500" },
+                    { label: "Total Tasks", value: tasks.length, icon: FileStackIcon, color: "text-zinc-900 dark:text-white" },
+                    { label: "Completed", value: tasks.filter((t) => t.status === "COMPLETED").length, color: "text-emerald-500" },
                     { label: "Priority", value: project.priority || 'Medium', color: "text-amber-500" },
                     { label: "Team", value: project.assigned_to?.length || 0, color: "text-blue-500" },
                     { label: "Start Date", value: project.start_date || 'N/A', color: "text-zinc-500" },
                     { label: "Deadline", value: project.end_date || 'N/A', color: "text-red-500" },
                 ].map((card, idx) => (
-                    <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 rounded-2xl shadow-sm">
-                        <div className="text-[10px] font-black uppercase text-zinc-400 tracking-widest mb-1">{card.label}</div>
-                        <div className={`text-sm font-bold truncate ${card.color}`}>{card.value}</div>
+                    <div key={idx} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
+                        <div className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-1 shadow-zinc-900/5 transition-colors group-hover:text-zinc-500">{card.label}</div>
+                        <div className={`text-[13px] font-bold truncate ${card.color}`}>{card.value}</div>
                     </div>
                 ))}
             </div>
 
             {/* Tabs */}
-            <div>
-                <div className="inline-flex flex-wrap max-sm:grid grid-cols-3 gap-2 border border-zinc-200 dark:border-zinc-800 rounded overflow-hidden">
+            <div className="pb-4">
+                <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg gap-1">
                     {[
                         { key: "tasks", label: "Tasks", icon: FileStackIcon },
                         { key: "calendar", label: "Calendar", icon: CalendarIcon },
                         { key: "analytics", label: "Analytics", icon: BarChart3Icon },
                         { key: "settings", label: "Settings", icon: SettingsIcon },
                     ].filter(tabItem => tabItem.key !== 'settings' || user?.role?.toUpperCase() === 'HR').map((tabItem) => (
-                        <button key={tabItem.key} onClick={() => { setActiveTab(tabItem.key); setSearchParams({ id: id, tab: tabItem.key }) }} className={`flex items-center gap-2 px-4 py-2 text-sm transition-all ${activeTab === tabItem.key ? "bg-zinc-100 dark:bg-zinc-800/80" : "hover:bg-zinc-50 dark:hover:bg-zinc-700"}`} >
+                        <button 
+                            key={tabItem.key} 
+                            onClick={() => { setActiveTab(tabItem.key); setSearchParams({ id: id, tab: tabItem.key }) }} 
+                            className={`flex items-center gap-2 px-6 py-2 text-[11px] font-bold uppercase tracking-widest rounded-md transition-all ${activeTab === tabItem.key ? "bg-white dark:bg-zinc-800 shadow-sm text-blue-600 dark:text-blue-400" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"}`} 
+                        >
                             <tabItem.icon className="size-3.5" />
                             {tabItem.label}
                         </button>
                     ))}
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-8 transition-all animate-in fade-in duration-300">
                     {activeTab === "tasks" && (
-                        <div className=" dark:bg-zinc-900/40 rounded max-w-6xl">
+                        <div className="max-w-6xl">
                             <ProjectTasks tasks={tasks} />
                         </div>
                     )}
                     {activeTab === "analytics" && (
-                        <div className=" dark:bg-zinc-900/40 rounded max-w-6xl">
+                        <div className="max-w-6xl">
                             <ProjectAnalytics tasks={tasks} project={project} />
                         </div>
                     )}
                     {activeTab === "calendar" && (
-                        <div className=" dark:bg-zinc-900/40 rounded max-w-6xl">
+                        <div className="max-w-6xl">
                             <ProjectCalendar tasks={tasks} />
                         </div>
                     )}
                     {activeTab === "settings" && (
-                        <div className=" dark:bg-zinc-900/40 rounded max-w-6xl">
-                            <ProjectSettings project={project} />
+                        <div className="max-w-6xl">
+                            <ProjectSettings project={project} tasks={tasks} />
                         </div>
                     )}
                 </div>

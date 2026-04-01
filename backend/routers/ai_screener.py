@@ -116,6 +116,20 @@ async def analyze_cvs(
             )
             
             analysis = json.loads(completion.choices[0].message.content)
+            
+            # Save to MongoDB
+            from database import ai_analysis_collection
+            from datetime import datetime
+            
+            analysis_record = {
+                **analysis,
+                "hr_id": current_hr["id"],
+                "job_requirements": requirements,
+                "filename": filename,
+                "created_at": datetime.utcnow()
+            }
+            await ai_analysis_collection.insert_one(analysis_record)
+            
             results.append(AIScreenerResult(**analysis))
             
         except Exception as e:
@@ -130,3 +144,4 @@ async def analyze_cvs(
             ))
             
     return AIScreenerResponse(results=results)
+

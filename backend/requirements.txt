@@ -16,3 +16,4 @@ pymupdf
 python-docx
 langchain
 langchain-groq
+certifi
