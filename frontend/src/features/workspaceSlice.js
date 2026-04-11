@@ -122,6 +122,17 @@ export const updateProject = createAsyncThunk('workspace/updateProject', async (
     }
 });
 
+export const deleteProject = createAsyncThunk('workspace/deleteProject', async (projectId, { rejectWithValue, dispatch }) => {
+    try {
+        const response = await api.delete(`/projects/${projectId}`);
+        // Refresh project list after deletion to ensure UI consistency
+        dispatch(fetchProjects());
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
 const initialState = {
     projects: [],
     employees: [],
