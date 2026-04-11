@@ -10,6 +10,7 @@ const Dashboard = () => {
     const { user } = useSelector((state) => state.auth);
     const { projects, employees, loading } = useSelector((state) => state.workspace);
 
+    // Modal State
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
@@ -17,12 +18,28 @@ const Dashboard = () => {
         dispatch(fetchEmployees());
     }, [dispatch]);
 
+    // Calculate real metrics
+    const allOrgTasks = projects.flatMap(p => p.tasks || []);
+    const completedOrgTasks = allOrgTasks.filter(t => t.status === 'COMPLETED').length;
+    const orgProductivity = allOrgTasks.length > 0 ? Math.round((completedOrgTasks / allOrgTasks.length) * 100) : 0;
+
+    const myTasks = projects.flatMap(p => (p.tasks || []).filter(t => t.assigned_to?.includes(user?.id)));
+    const completedMyTasks = myTasks.filter(t => t.status === 'COMPLETED').length;
+    const myProductivity = myTasks.length > 0 ? Math.round((completedMyTasks / myTasks.length) * 100) : 0;
+
+    const productivityValue = user?.role?.toUpperCase() === 'HR' ? orgProductivity : myProductivity;
+
+    const totalOpenTasks = user?.role?.toUpperCase() === 'HR' 
+        ? allOrgTasks.filter(t => t.status !== 'COMPLETED').length
+        : myTasks.filter(t => t.status !== 'COMPLETED').length;
+
     // Calculate quick stats
     const stats = [
-        { label: 'Total Projects', value: projects.length, icon: Briefcase, color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100 dark:bg-slate-800' },
-        { label: 'Open Tasks', value: projects.reduce((acc, p) => acc + (p.tasks?.length || 0), 0), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-500/10' },
-        { label: 'Productivity', value: '92%', icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-500/10' },
+        { label: 'Total Projects', value: projects.length, icon: Briefcase, color: 'text-zinc-700 dark:text-blue-400', bg: 'bg-zinc-100 dark:bg-blue-500/10' },
+        { label: 'Open Tasks', value: totalOpenTasks, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-500/10' },
+        { label: 'Productivity', value: `${productivityValue}%`, icon: TrendingUp, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10' },
     ];
+
 
     if (user?.role?.toUpperCase() === 'HR') {
         stats.splice(1, 0, { label: 'Team Members', value: employees.length, icon: Users, color: 'text-purple-600', bg: 'bg-purple-100 dark:bg-purple-500/10' });
@@ -36,15 +53,15 @@ const Dashboard = () => {
                     <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white">
                         Welcome back, {user?.first_name || 'User'}
                     </h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium uppercase tracking-tight">
                         {user?.role?.toUpperCase() === 'HR' 
-                            ? `Here's what's happening with your projects today.`
-                            : `You have ${projects.length} active project${projects.length !== 1 ? 's' : ''} in your workspace.`}
+                            ? `Monitor your organization's performance and core metrics.`
+                            : `Review your active assignments and track your productivity.`}
                     </p>
                 </div>
                 {user?.role?.toUpperCase() === 'HR' && (
                   <div className="flex gap-3">
-                    <button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors text-sm">
+                    <button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-black uppercase tracking-widest transition-all text-[10px] shadow-lg shadow-blue-500/20 active:scale-95">
                       <Plus className="size-4" /> New Project
                     </button>
                     <CreateProjectDialog isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} />
@@ -54,14 +71,14 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (
-                    <div key={i} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-md hover:border-blue-400 dark:hover:border-zinc-600 transition-colors">
+                    <div key={i} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-md hover:border-blue-400/50 dark:hover:border-blue-500/30 transition-all cursor-default">
                         <div className="flex items-center justify-between mb-4">
-                            <div className={`p-3 rounded-lg ${stat.bg} ${stat.color}`}>
+                            <div className={`p-3 rounded-md ${stat.bg} ${stat.color} border border-transparent dark:border-blue-500/10`}>
                                 <stat.icon className="size-5" />
                             </div>
                         </div>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-1">{stat.label}</p>
-                        <h3 className="text-2xl font-semibold text-zinc-900 dark:text-white">{stat.value}</h3>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-[11px] font-black uppercase tracking-widest mb-1">{stat.label}</p>
+                        <h3 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tighter">{stat.value}</h3>
                     </div>
                 ))}
             </div>
@@ -73,23 +90,23 @@ const Dashboard = () => {
                 {user?.role?.toUpperCase() !== 'HR' && (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
-                            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Your Assigned Tasks</h2>
+                            <h2 className="text-lg font-black uppercase tracking-tight text-zinc-900 dark:text-white">Your Assigned Tasks</h2>
                         </div>
                         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 no-scrollbar">
-                            {projects.flatMap(p => (p.tasks || []).filter(t => t.assigned_to?.includes(user.id)).map(t => ({ ...t, projectName: p.name, projectId: p.id }))).length > 0 ? (
-                                projects.flatMap(p => (p.tasks || []).filter(t => t.assigned_to?.includes(user.id)).map(t => ({ ...t, projectName: p.name, projectId: p.id }))).map(task => (
-                                    <Link key={task.id} to={`/dashboard/projectsDetail?id=${task.projectId}&tab=tasks`} className="group block bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-4 rounded-xl hover:border-blue-500/50 transition-all shadow-sm" >
+                            {myTasks.length > 0 ? (
+                                myTasks.map(task => (
+                                    <Link key={task.id} to={`/dashboard/projectsDetail?id=${task.projectId}&tab=tasks`} className="group block bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-4 rounded-md hover:border-blue-500/30 dark:hover:bg-blue-500/5 transition-all shadow-sm" >
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="space-y-1">
-                                                <h3 className="font-bold text-zinc-900 dark:text-white text-sm group-hover:text-blue-600 transition-colors">{task.title}</h3>
-                                                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Project: <span className="text-blue-600/80">{task.projectName}</span></p>
+                                                <h3 className="font-black text-zinc-900 dark:text-white text-xs uppercase tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{task.title}</h3>
+                                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-tight">Project: <span className="text-blue-600/80 dark:text-blue-400/80">{task.projectName}</span></p>
                                             </div>
                                             <div className="text-right space-y-2">
                                                 <div className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md inline-block ${task.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'}`}>
                                                     {task.status || 'TODO'}
                                                 </div>
                                                 {task.due_date && (
-                                                    <div className="text-[10px] text-red-500 font-bold flex items-center gap-1 justify-end">
+                                                    <div className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold flex items-center gap-1 justify-end">
                                                         <Clock className="size-3" /> {task.due_date}
                                                     </div>
                                                 )}
@@ -97,6 +114,7 @@ const Dashboard = () => {
                                         </div>
                                     </Link>
                                 ))
+
                             ) : (
                                 <div className="p-10 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-md border border-dashed border-zinc-200 dark:border-zinc-800">
                                     <CheckCircle2 className="size-10 mx-auto text-zinc-300 mb-2" />
@@ -110,7 +128,7 @@ const Dashboard = () => {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
                         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Active Projects</h2>
-                        <Link to="/dashboard/projects" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 flex items-center gap-1">
+                        <Link to="/dashboard/projects" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 dark:hover:text-white hover:text-zinc-900 flex items-center gap-1">
                           View all <ArrowRight className="size-4" />
                         </Link>
                     </div>
@@ -123,13 +141,16 @@ const Dashboard = () => {
                                           <Briefcase className="size-5" />
                                         </div>
                                         <div className="text-right">
-                                            <span className="text-[10px] font-semibold uppercase text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">
-                                            {p.status || 'Active'}
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-blue-500/85 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-400 px-2 py-0.5 rounded-md">
+                                                {p.status || 'Active'}
                                             </span>
                                             {p.end_date && (
-                                                <p className="text-[9px] text-red-500 font-bold mt-1 uppercase tracking-tighter">Deadline: {p.end_date}</p>
+                                                <p className="text-[9px] text-black dark:text-zinc-500 font-black mt-1.5 uppercase tracking-tight flex items-center justify-end gap-1">
+                                                    <Clock className="size-2.5" /> {p.end_date}
+                                                </p>
                                             )}
                                         </div>
+
                                     </div>
                                     <h3 className="text-md font-semibold text-zinc-900 dark:text-white mb-1 line-clamp-1">{p.name}</h3>
                                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-5 line-clamp-2">{p.description}</p>
@@ -158,7 +179,7 @@ const Dashboard = () => {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
                             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Recent Team</h2>
-                            <Link to="/dashboard/team" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900">All members</Link>
+                            <Link to="/dashboard/team" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 dark:hover:text-white hover:text-zinc-900">All members</Link>
                         </div>
                         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-md space-y-4">
                             {employees.slice(0, 5).map((e, i) => (
@@ -180,7 +201,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Schedule Snippet */}
-                        <div className="bg-white dark:bg-zinc-900 p-6 rounded-md border border-zinc-200 dark:border-zinc-800">
+                        {/* <div className="bg-white dark:bg-zinc-900 p-6 rounded-md border border-zinc-200 dark:border-zinc-800">
                             <div className="flex items-center gap-2 mb-4">
                                 <CalendarDays className="size-5 text-blue-600" />
                                 <h3 className="text-md font-semibold text-zinc-900 dark:text-white">Team Sync-up</h3>
@@ -194,7 +215,7 @@ const Dashboard = () => {
                                      </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 )}
             </div>

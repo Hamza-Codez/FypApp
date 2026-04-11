@@ -17,6 +17,8 @@ import { LayoutDashboardIcon, FolderOpenIcon, UsersIcon, SettingsIcon, BrainCirc
 import Home from "./pages/Home";
 
 import Profile from "./pages/Profile";
+import MyTasks from "./pages/MyTasks";
+import TaskReports from "./pages/TaskReports";
 
 const ProtectedRoute = ({ children }) => {
     const { token } = useSelector((state) => state.auth);
@@ -48,7 +50,10 @@ const App = () => {
                     <Route path="projectsDetail" element={<ProjectDetails />} />
                     <Route path="taskDetails" element={<TaskDetails />} />
                     <Route path="ai-screener" element={<AIScreener />} />
+                    <Route path="my-tasks" element={<MyTasks />} />
+                    <Route path="task-reports" element={<TaskReports />} />
                     <Route path="profile" element={<Profile />} />
+
                 </Route>
             </Routes>
         </>

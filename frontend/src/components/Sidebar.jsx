@@ -8,7 +8,9 @@ import {
     LayoutDashboard as LayoutDashboardIcon, 
     Settings as SettingsIcon, 
     Users as UsersIcon,
-    BrainCircuit as BrainCircuitIcon
+    BrainCircuit as BrainCircuitIcon,
+    CheckSquare as CheckSquareIcon,
+    FileSearch as FileSearchIcon
 } from 'lucide-react'
 import { useSelector } from 'react-redux'
 
@@ -24,7 +26,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
     if (userRole?.toUpperCase() === 'HR') {
         menuItems.push({ name: 'AI CV Screener', href: '/dashboard/ai-screener', icon: BrainCircuitIcon });
+        menuItems.push({ name: 'Task Reports', href: '/dashboard/task-reports', icon: FileSearchIcon });
+    } else if (userRole?.toUpperCase() === 'EMPLOYEE') {
+        menuItems.push({ name: 'My Tasks', href: '/dashboard/my-tasks', icon: CheckSquareIcon });
     }
+
 
     const sidebarRef = useRef(null);
 

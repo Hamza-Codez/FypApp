@@ -72,5 +72,7 @@ def task_helper(task) -> dict:
         "priority": task.get("priority", "MEDIUM"),
         "due_date": task.get("due_date"),
         "comments": task.get("comments", []),
+        "report_link": task.get("report_link"),
         "created_at": task.get("created_at")
     }
+

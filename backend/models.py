@@ -76,6 +76,8 @@ class TaskComment(BaseModel):
 
 class TaskUpdateStatus(BaseModel):
     status: str
+    report_link: Optional[str] = None
+
 
 class UserUpdate(BaseModel):
     first_name: Optional[str]

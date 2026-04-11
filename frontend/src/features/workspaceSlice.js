@@ -71,15 +71,36 @@ export const deleteAllEmployees = createAsyncThunk('workspace/deleteAllEmployees
     }
 });
 
-export const updateTaskStatus = createAsyncThunk('workspace/updateTaskStatus', async ({ taskId, status }, { rejectWithValue, dispatch }) => {
+export const updateTaskStatus = createAsyncThunk('workspace/updateTaskStatus', async ({ taskId, status, report_link }, { rejectWithValue, dispatch }) => {
     try {
-        const response = await api.put(`/projects/tasks/${taskId}/status`, { status });
+        const response = await api.put(`/projects/tasks/${taskId}/status`, { status, report_link });
         dispatch(fetchProjects());
+        dispatch(fetchMyTasks());
+        dispatch(fetchTaskReports());
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data);
     }
 });
+
+export const fetchMyTasks = createAsyncThunk('workspace/fetchMyTasks', async (_, { rejectWithValue }) => {
+    try {
+        const response = await api.get('/projects/tasks/my');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
+export const fetchTaskReports = createAsyncThunk('workspace/fetchTaskReports', async (_, { rejectWithValue }) => {
+    try {
+        const response = await api.get('/projects/tasks/reports');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
 
 export const createTask = createAsyncThunk('workspace/createTask', async (taskData, { rejectWithValue, dispatch }) => {
     try {
@@ -104,10 +125,13 @@ export const updateProject = createAsyncThunk('workspace/updateProject', async (
 const initialState = {
     projects: [],
     employees: [],
+    myTasks: [],
+    taskReports: [],
     workspaces: [],
     currentWorkspace: null,
     loading: false,
 };
+
 
 const workspaceSlice = createSlice({
     name: "workspace",
@@ -128,7 +152,14 @@ const workspaceSlice = createSlice({
             .addCase(fetchEmployees.fulfilled, (state, action) => {
                 state.employees = action.payload;
             })
+            .addCase(fetchMyTasks.fulfilled, (state, action) => {
+                state.myTasks = action.payload;
+            })
+            .addCase(fetchTaskReports.fulfilled, (state, action) => {
+                state.taskReports = action.payload;
+            })
             .addCase('auth/login/fulfilled', (state, action) => {
+
                 if (action.payload.user?.organization_name) {
                     state.currentWorkspace = {
                         id: "1",

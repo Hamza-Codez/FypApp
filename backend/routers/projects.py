@@ -117,12 +117,38 @@ async def update_task_status(task_id: str, status_update: TaskUpdateStatus, curr
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    # Restrict COMPLETED status to HR
+    if status_update.status == "COMPLETED" and current_user.get("role") != "HR":
+        raise HTTPException(status_code=403, detail="Only HR can mark tasks as COMPLETED")
+
+    update_doc = {"status": status_update.status}
+    if status_update.report_link:
+        update_doc["report_link"] = status_update.report_link
+
     await tasks_collection.update_one(
         {"_id": ObjectId(task_id)},
-        {"$set": {"status": status_update.status}}
+        {"$set": update_doc}
     )
     
     return {"message": "Task status updated"}
+
+@router.get("/tasks/my")
+async def get_my_tasks(current_user: dict = Depends(get_current_user)):
+    # Returns all tasks assigned to the current employee
+    cursor = tasks_collection.find({"assigned_to": current_user["id"]})
+    tasks = []
+    async for doc in cursor:
+        tasks.append(task_helper(doc))
+    return tasks
+
+@router.get("/tasks/reports")
+async def get_task_reports(current_hr: dict = Depends(get_current_hr_user)):
+    # Returns all tasks that have a report_link (reviewable by HR)
+    cursor = tasks_collection.find({"report_link": {"$exists": True, "$ne": None}})
+    tasks = []
+    async for doc in cursor:
+        tasks.append(task_helper(doc))
+    return tasks
 
 @router.put("/{project_id}", response_model=dict)
 async def update_project(project_id: str, project_update: ProjectUpdate, current_hr: dict = Depends(get_current_hr_user)):
@@ -138,3 +164,4 @@ async def update_project(project_id: str, project_update: ProjectUpdate, current
     
     updated_project = await projects_collection.find_one({"_id": ObjectId(project_id)})
     return project_helper(updated_project)
+

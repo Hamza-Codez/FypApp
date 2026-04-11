@@ -147,9 +147,9 @@ async def get_employees(current_user: dict = Depends(get_current_user)):
         cursor = users_collection.find({"created_by": current_user["id"]})
     else:
         cursor = users_collection.find({
-            "organization_name": current_user.get("organization_name"),
-            "email": {"$ne": current_user["email"]}
+            "organization_name": current_user.get("organization_name")
         })
+
         
     employees = []
     async for document in cursor:

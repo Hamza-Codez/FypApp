@@ -101,7 +101,8 @@ export default function ProjectDetail() {
 
             {/* Tabs */}
             <div className="pb-4">
-                <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg gap-1">
+            <div className="flex items-center justify-between gap-4 pb-4 overflow-x-auto no-scrollbar">
+                <div className="inline-flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg gap-1 shrink-0">
                     {[
                         { key: "tasks", label: "Tasks", icon: FileStackIcon },
                         { key: "calendar", label: "Calendar", icon: CalendarIcon },
@@ -118,6 +119,29 @@ export default function ProjectDetail() {
                         </button>
                     ))}
                 </div>
+
+                <div className="flex gap-2 shrink-0">
+                    {user?.role?.toUpperCase() === 'HR' ? (
+                        <button 
+                            onClick={() => navigate('/dashboard/task-reports')}
+                            className="flex items-center gap-2 px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-900 hover:opacity-90 transform active:scale-95 transition-all shadow-xl shadow-zinc-20/20 dark:shadow-white/10"
+                        >
+                            <ZapIcon className="size-3 fill-current" />
+                            Task Reports
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => navigate('/dashboard/my-tasks')}
+                            className="flex items-center gap-2 px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-900 hover:opacity-90 transform active:scale-95 transition-all"
+                        >
+                            <ZapIcon className="size-3 fill-current" />
+                            My Tasks
+                        </button>
+                    )}
+                </div>
+
+            </div>
+
 
                 <div className="mt-8 transition-all animate-in fade-in duration-300">
                     {activeTab === "tasks" && (
