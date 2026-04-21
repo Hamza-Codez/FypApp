@@ -34,7 +34,6 @@ def user_helper(user) -> dict:
         "gender": user.get("gender"),
         "age": user.get("age"),
         "organization_name": user.get("organization_name"),
-        "contact_info": user.get("contact_info"),
         "email": user.get("email"),
         "org_architecture": user.get("org_architecture"),
         "org_headcounts": user.get("org_headcounts"),
@@ -43,7 +42,6 @@ def user_helper(user) -> dict:
         "org_logo": user.get("org_logo"),
         "role": user.get("role"),
         "created_by": user.get("created_by"),
-        "salary_pkr": user.get("salary_pkr")
     }
 
 def project_helper(project) -> dict:

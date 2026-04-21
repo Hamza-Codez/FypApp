@@ -13,11 +13,7 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
         first_name: "",
         last_name: "",
         email: "",
-        contact_info: "",
-        gender: "",
-        age: "",
         role: "Employee",
-        salary_pkr: ""
     });
 
     const handleChange = (e) => {
@@ -39,7 +35,6 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                 sanitizedData.age = parseInt(sanitizedData.age);
             }
 
-            if (sanitizedData.contact_info === "") delete sanitizedData.contact_info;
             if (sanitizedData.gender === "") delete sanitizedData.gender;
 
             resultAction = await dispatch(addEmployee(sanitizedData));
@@ -56,7 +51,7 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
         if (addEmployee.fulfilled.match(resultAction) || uploadEmployeesCSV.fulfilled.match(resultAction)) {
             toast.success(tab === "manual" ? "Employee added and email sent!" : "CSV processed successfully!");
             setIsDialogOpen(false);
-            setFormData({ first_name: "", last_name: "", email: "", contact_info: "", gender: "", age: "", role: "Employee", salary_pkr: "" });
+            setFormData({ first_name: "", last_name: "", email: "", gender: "", age: "", role: "Employee" });
             setCsvFile(null);
         } else {
             toast.error(resultAction.payload?.detail || "Action failed");
@@ -98,8 +93,6 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                               { label: 'First Name', name: 'first_name', type: 'text', placeholder: 'e.g. John', required: true },
                               { label: 'Last Name', name: 'last_name', type: 'text', placeholder: 'e.g. Doe', required: true },
                               { label: 'Email Address', name: 'email', type: 'email', placeholder: 'john@company.com', required: true },
-                              { label: 'Phone Number', name: 'contact_info', type: 'text', placeholder: '+92 ...' },
-                              { label: 'Monthly Salary', name: 'salary_pkr', type: 'number', placeholder: '50000' }
                             ].map((field) => (
                               <div key={field.name} className="group">
                                 <label className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest block mb-1.5 transition-colors group-focus-within:text-blue-500">{field.label}</label>
@@ -164,7 +157,7 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                         <div className="size-1 rounded-full bg-zinc-400" />
                                         Secondary
                                     </p>
-                                    <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold leading-relaxed">Phone, Salary, Gender</p>
+                                    <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold leading-relaxed">Gender</p>
                                 </div>
                             </div>
                         </div>

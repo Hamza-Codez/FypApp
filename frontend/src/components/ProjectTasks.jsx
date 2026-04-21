@@ -86,11 +86,11 @@ const ProjectTasks = ({ tasks }) => {
                 const resultAction = await dispatch(updateTaskStatus({ taskId: modal.taskId, status: "IN_PROGRESS", report_link: value }));
                 toast.dismiss();
                 if (updateTaskStatus.fulfilled.match(resultAction)) {
-                    toast.success("Report shared with HR!");
+                    toast.success("Report Submitted!");
                 }
             } catch (error) {
                 toast.dismiss();
-                toast.error("Failed to share report");
+                toast.error("Failed to submit report");
             }
         }
     };

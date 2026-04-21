@@ -10,7 +10,6 @@ class User(BaseModel):
     gender: Optional[str]
     age: Optional[int]
     organization_name: Optional[str]
-    contact_info: Optional[str]
     org_architecture: Optional[str]
     org_headcounts: Optional[str]
     cultural_practices: Optional[str]
@@ -18,7 +17,6 @@ class User(BaseModel):
     profile_image: Optional[str]
     org_logo: Optional[str]
     created_by: Optional[str] # for employees
-    salary_pkr: Optional[float] = None
 
 class Token(BaseModel):
     access_token: str
@@ -34,11 +32,7 @@ class EmployeeCreate(BaseModel):
     last_name: str
     email: EmailStr
     username: Optional[str] = None
-    contact_info: Optional[str] = None
-    gender: Optional[str] = None
-    age: Optional[int] = None
     password: Optional[str] = None # Or generated automatically
-    salary_pkr: Optional[float] = None
     role: Optional[str] = "EMPLOYEE"
 
 class ProjectCreate(BaseModel):
@@ -87,7 +81,6 @@ class UserUpdate(BaseModel):
     gender: Optional[str]
     age: Optional[int]
     organization_name: Optional[str]
-    contact_info: Optional[str]
     org_architecture: Optional[str]
     org_headcounts: Optional[str]
     cultural_practices: Optional[str]

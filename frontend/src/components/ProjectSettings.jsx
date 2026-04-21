@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Save, Plus, Target, Activity, ShieldCheck, AlertCircle, TrendingUp, Calendar, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Save, Plus, Target, Activity, ShieldCheck, AlertCircle, TrendingUp, Calendar, ChevronRight, Trash2 } from "lucide-react";
 import { format, isBefore } from "date-fns";
-import { updateProject } from "../features/workspaceSlice";
+import { updateProject, deleteProject } from "../features/workspaceSlice";
 import toast from "react-hot-toast";
+import CustomModal from "./CustomModal";
 
 export default function ProjectSettings({ project, tasks = [] }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const today = new Date();
 
@@ -29,7 +32,8 @@ export default function ProjectSettings({ project, tasks = [] }) {
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     useEffect(() => {
         if (project) {
@@ -63,6 +67,26 @@ export default function ProjectSettings({ project, tasks = [] }) {
             toast.error(errorMessage);
         }
 
+    };
+
+    /**
+     * Professional dissolution flow:
+     * 1. Handles the Redux dispatch for project deletion.
+     * 2. Provides feedback via toast.
+     * 3. Redirects to the projects dashboard on success.
+     */
+    const handleDeleteProject = async () => {
+        setIsDeleting(true);
+        const resultAction = await dispatch(deleteProject(project.id));
+        setIsDeleting(false);
+        
+        if (deleteProject.fulfilled.match(resultAction)) {
+            toast.success("Project and associated metadata dissolved successfully.");
+            navigate("/dashboard");
+        } else {
+            const error = resultAction.payload?.detail || "System failed to dissolve project.";
+            toast.error(error);
+        }
     };
 
     if (user?.role?.toUpperCase() !== 'HR') {
@@ -217,7 +241,59 @@ export default function ProjectSettings({ project, tasks = [] }) {
                         {formData.status.replace('_', ' ')}
                     </h3>
                 </div>
+
+                {/* --- Danger Zone Section: Premium Restructure --- */}
+                <div className={`${cardClasses} border-red-500/20 bg-red-500/[0.02] dark:bg-red-500/[0.03] mt-8 overflow-hidden relative group transition-all duration-300 hover:border-red-500/40`}>
+                    {/* Decorative Accent */}
+                    <div className="absolute top-0 left-0 w-1 h-full bg-red-500/20 group-hover:bg-red-500 transition-colors" />
+                    
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-red-500/10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-red-500/10 rounded-md">
+                                <Trash2 className="size-4 text-red-500" />
+                            </div>
+                            <div>
+                                <span className="inline-block px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[8px] font-black uppercase tracking-tighter mb-0.5">
+                                    Project Dissolution
+                                </span>
+                                <h2 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-white leading-none">
+                                    Desolve Now
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-black text-zinc-900 dark:text-white uppercase tracking-widest opacity-80">
+                                Purge Project Infrastructure
+                            </p>
+                        </div>
+
+                        <div className="pt-2">
+                            <button 
+                                type="button" 
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="w-fit flex items-center justify-center gap-2.5 bg-red-600/90 hover:bg-red-700 text-white px-3 py-2 rounded-md font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-red-500/20 transition-all active:scale-[0.98] group/btn"
+                            >
+                                <Trash2 className="size-3.5 group-hover/btn:animate-pulse" />
+                                Execute Project Purge
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* Confirmation Modal */}
+            <CustomModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleDeleteProject}
+                title="Critical Confirmation"
+                message={`You are about to dissolve "${project.name}". This will permanently remove all member assignments and task architectures. Proceed with caution?`}
+                variant="red"
+                confirmText={isDeleting ? "Purging..." : "Confirm Purge"}
+            />
         </div>
     );
 }

@@ -120,7 +120,7 @@ const Profile = () => {
                             <h1 className="text-2xl font-bold tracking-tight">{user?.first_name} {user?.last_name}</h1>
                             {user?.role === 'HR' && (
                                 <span className="w-fit px-2.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-semibold uppercase tracking-wider rounded border border-blue-100 dark:border-blue-900/30">
-                                    HR Manager
+                                    HR Manager/ PMO
                                 </span>
                             )}
                         </div>

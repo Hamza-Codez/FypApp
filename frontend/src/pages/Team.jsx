@@ -148,15 +148,13 @@ const Team = () => {
                 ) : (
                     <div className="max-w-5xl w-full">
                         {/* Desktop Table */}
-                        <div className={`hidden sm:block ${!isSidebarCollapsed ? 'w-[58rem]' : 'w-[67rem]'} overflow-x-hidden rounded-md border border-gray-200 dark:border-zinc-800`}>
-                            <table className={`${!isSidebarCollapsed ? 'min-w-58rem' : 'w-full'} divide-y divide-gray-200 dark:divide-zinc-800`}>
+                        <div className="hidden sm:block w-full overflow-x-hidden rounded-md border border-gray-200 dark:border-zinc-800">
+                            <table className="w-full divide-y divide-gray-200 dark:divide-zinc-800">
                                 <thead className="bg-gray-50 dark:bg-zinc-900/50">
                                     <tr>
                                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-[0.15em] text-zinc-400">Name</th>
                                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-[0.15em] text-zinc-400">Email</th>
-                                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-[0.15em] text-zinc-400">Phone</th>
                                         <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-[0.15em] text-zinc-400">Role</th>
-                                        <th className="px-6 py-4 text-left font-bold text-[10px] uppercase tracking-[0.15em] text-zinc-400">Salary</th>
                                         {user?.role === 'HR' && (
                                             <th className="px-6 py-4 text-right font-bold text-[10px] uppercase tracking-[0.15em] text-zinc-400">Actions</th>
                                         )}
@@ -178,16 +176,10 @@ const Team = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400 font-medium">
                                                 {emp.email}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-[11px] text-zinc-400 font-medium font-mono">
-                                                {emp.contact_info || "—"}
-                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="px-2.5 py-1 text-[10px] font-bold rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 uppercase tracking-widest">
                                                     {emp.role}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                                {emp.salary_pkr ? `PKR ${emp.salary_pkr.toLocaleString()}` : "—"}
                                             </td>
                                             {user?.role === 'HR' && (
                                                 <td className="px-6 py-4 text-right">
@@ -240,12 +232,7 @@ const Team = () => {
                                               </span>
                                             </div>
                                             <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                                              <p className="text-[10px] text-zinc-400 font-mono">{emp.contact_info || "No Contact"}</p>
-                                              {emp.salary_pkr && (
-                                                <p className="text-[11px] font-bold text-emerald-600">
-                                                  PKR {emp.salary_pkr.toLocaleString()}
-                                                </p>
-                                              )}
+                                              {/* Contact and Salary removed */}
                                             </div>
                                         </div>
                                     </div>

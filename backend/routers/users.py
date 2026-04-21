@@ -68,8 +68,6 @@ async def create_employees_from_csv(
         'first_name': ['first_name', 'first_name', 'first_name', 'name', 'first'],
         'last_name': ['last_name', 'last_name', 'last_name', 'surname', 'last'],
         'email': ['email', 'email_address', 'mail'],
-        'contact_info': ['contact_info', 'phone', 'contact', 'mobile', 'cell', 'phone_number'],
-        'salary_pkr': ['salary_pkr', 'salary', 'pay', 'income', 'monthly_salary'],
         'role': ['role', 'position', 'designation', 'job_title', 'job', 'job title', 'post']
     }
 
@@ -95,7 +93,7 @@ async def create_employees_from_csv(
         raise HTTPException(status_code=400, detail=f"CSV missing required columns: {missing}. Checked aliases: {column_mapping}")
 
     # Map optional columns
-    optional_mapped = ['contact_info', 'salary_pkr', 'role']
+    optional_mapped = ['role']
     for opt in optional_mapped:
         col = get_column(opt, df)
         if col:
@@ -125,8 +123,6 @@ async def create_employees_from_csv(
                 "last_name": str(row[last_name_col]).strip(),
                 "email": email,
                 "username": email, # default to email
-                "contact_info": str(row.get(actual_mapping.get('contact_info', ''), '')).strip(),
-                "salary_pkr": float(row[actual_mapping['salary_pkr']]) if 'salary_pkr' in actual_mapping and pd.notna(row[actual_mapping['salary_pkr']]) else None,
                 "role": str(row.get(actual_mapping.get('role', ''), 'Employee')).strip(),
                 "password": hashed_password,
                 "created_by": hr_user["id"],

@@ -165,3 +165,33 @@ async def update_project(project_id: str, project_update: ProjectUpdate, current
     updated_project = await projects_collection.find_one({"_id": ObjectId(project_id)})
     return project_helper(updated_project)
 
+@router.delete("/{project_id}")
+async def delete_project(project_id: str, current_hr: dict = Depends(get_current_hr_user)):
+    """
+    Carefully dissolve a project and all its associated data.
+    This includes:
+    1. Permanently removing all tasks linked to the project.
+    2. Deleting the project document itself.
+    This effectively dissolves the 'teams' associated with the project by removing the assignment context.
+    """
+    # 1. Verify project exists
+    project = await projects_collection.find_one({"_id": ObjectId(project_id)})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    # 2. Authorization check: Only the HR administrator who created the project can dissolve it
+    if project.get("created_by") != current_hr["id"]:
+        raise HTTPException(status_code=403, detail="Unauthorized: You can only delete projects created by you")
+        
+    # 3. Cascading delete for related tasks
+    # Using delete_many to ensure data cleanliness
+    await tasks_collection.delete_many({"project_id": ObjectId(project_id)})
+    
+    # 4. Delete the project itself
+    result = await projects_collection.delete_one({"_id": ObjectId(project_id)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=500, detail="Database error: Failed to delete the project document")
+        
+    return {"message": "Project dissolved and relevant data purged successfully"}
+

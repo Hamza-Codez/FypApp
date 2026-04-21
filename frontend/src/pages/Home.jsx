@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
-import { LayoutGrid, Users, Briefcase, Zap, Shield, BarChart3, ChevronRight, CheckCircle2, Sparkles, MessageSquare, Sun, Moon, TrendingUp, PieChart, Activity, Clock } from 'lucide-react';
+import { LayoutGrid, Users, Briefcase, Zap, Shield, BarChart3, ChevronRight, CheckCircle2, Sparkles, Sun, Moon, TrendingUp, PieChart, Activity, Clock, FileBarChart, Calendar } from 'lucide-react';
 
 const Home = () => {
     const dispatch = useDispatch();
@@ -200,13 +200,13 @@ const Home = () => {
                                 <div className="icon-animate p-2.5 bg-blue-600 rounded-md w-fit text-white mb-5 shadow-[0_8px_30px_rgb(37,99,235,0.3)] flex-shrink-0">
                                     <Users className="size-5" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">AI-Powered HR Automation</h3>
+                                <h3 className="text-xl font-bold mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">The Complete Workspace</h3>
                                 <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed mb-5 max-w-[95%]">
-                                    Streamline your entire workforce management. From automated onboarding workflows to seamless payroll processing and benefits administration, OfficeOS handles the complex HR tasks effortlessly.
+                                    Streamline your entire workforce management. From organizing teams and workflows to seamless project management and task tracking, OfficeOS handles the complex HR tasks effortlessly.
                                 </p>
                                 <ul className="space-y-2.5">
-                                    <li className="flex items-center gap-3 text-sm text-zinc-800 dark:text-zinc-200 font-medium"><CheckCircle2 className="size-4 text-blue-500"/> Effortless one-click payroll</li>
-                                    <li className="flex items-center gap-3 text-sm text-zinc-800 dark:text-zinc-200 font-medium"><CheckCircle2 className="size-4 text-blue-500"/> Automated 10-step onboarding</li>
+                                    <li className="flex items-center gap-3 text-sm text-zinc-800 dark:text-zinc-200 font-medium"><CheckCircle2 className="size-4 text-blue-500"/> Effortless one-click onboarding</li>
+                                    <li className="flex items-center gap-3 text-sm text-zinc-800 dark:text-zinc-200 font-medium"><CheckCircle2 className="size-4 text-blue-500"/> Track employee performance and productivity</li>
                                 </ul>
                             </div>
                             
@@ -285,7 +285,7 @@ const Home = () => {
                             </div>
                             <h3 className="text-xl font-bold mb-3 relative z-10 group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400 transition-colors">Agile Tracking</h3>
                             <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed relative z-10 pr-2">
-                                Visualize project progress instantly with interactive workflow boards, timelines, and customizable Kanban states.
+                                Visualize project progress instantly with interactive workflow boards, timelines, and customizable class states.
                             </p>
                             {/* Visual Mockup */}
                             <div className="animate-float-subtle absolute -bottom-8 -left-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md rounded-xl p-4 flex gap-2.5 w-[120%] z-0 group-hover:-translate-y-6 transition-transform duration-700 border border-white dark:border-zinc-800 shadow-xl group-hover:rotate-1">
@@ -320,10 +320,10 @@ const Home = () => {
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Seamless Integrations</h3>
                                 <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed mb-5">
-                                    Connect OfficeOS securely into your existing workflow. Enjoy native data integrations with hundreds of tools right out of the box. No manual entry required.
+                                    Invite your new team members and get started instantly. Supervised Team collaborations and calender synced deadlines made the work easy to handle the mess alone. 
                                 </p>
                                 <button className="flex items-center gap-2 text-[13px] font-bold text-emerald-600 dark:text-emerald-500 hover:opacity-80 transition-opacity w-fit group-hover:translate-x-2 duration-300">
-                                    Explore all 200+ integrations <ChevronRight className="size-4"/>
+                                    Explore all the features <ChevronRight className="size-4"/>
                                 </button>
                             </div>
 
@@ -362,10 +362,10 @@ const Home = () => {
 
                         {/* 4 Small Utility Cards (3 cols each) */}
                         {[
-                            { icon: Shield, title: "Performance AI", desc: "Automate quarterly reviews with deeply integrated AI insights.", bgIcon: "bg-teal-600", shadow: "shadow-teal-500/30", dot: "bg-teal-400 text-teal-400", visual: <TrendingUp className="size-36" /> },
-                            { icon: Zap, title: "Expense Tracking", desc: "Receipt scanning and auto-categorization for fast approvals.", bgIcon: "bg-amber-500", shadow: "shadow-amber-500/30", dot: "bg-amber-400 text-amber-400", visual: <Activity className="size-36" /> },
+                            { icon: Shield, title: "Performance Tracking", desc: "Monitor employee performance with real-time metrics and analytics.", bgIcon: "bg-teal-600", shadow: "shadow-teal-500/30", dot: "bg-teal-400 text-teal-400", visual: <TrendingUp className="size-36" /> },
+                            { icon: Calendar, title: "Deadline Tracking", desc: "Monitor project milestones and keep your team in sync to deadlines.", bgIcon: "bg-amber-500", shadow: "shadow-amber-500/30", dot: "bg-amber-400 text-amber-400", visual: <Calendar className="size-36" /> },
                             { icon: Users, title: "Capacity Planning", desc: "Predict team bandwidth and balance workloads efficiently.", bgIcon: "bg-purple-600", shadow: "shadow-purple-500/30", dot: "bg-purple-400 text-purple-400", visual: <PieChart className="size-36" /> },
-                            { icon: MessageSquare, title: "Unified Team Chat", desc: "Collaborate contextually in real-time across all active projects.", bgIcon: "bg-sky-500", shadow: "shadow-sky-500/30", dot: "bg-sky-400 text-sky-400", visual: <Clock className="size-36" /> },
+                            { icon: FileBarChart, title: "Detailed Reports", desc: "Allows you to review detailed project reports in real-time.", bgIcon: "bg-sky-500", shadow: "shadow-sky-500/30", dot: "bg-sky-400 text-sky-400", visual: <FileBarChart className="size-36" /> },
                         ].map((item, i) => (
                             <div key={i} className="col-span-1 lg:col-span-3 bg-[#f4f5fa] dark:bg-zinc-900/50 rounded-xl p-5 flex flex-col justify-between relative group overflow-hidden transition-all duration-500 border border-transparent dark:border-zinc-800 hover:shadow-xl dark:hover:shadow-zinc-900/50">
                                 <div className={`absolute -right-6 -bottom-6 text-zinc-900/[0.04] dark:text-white/[0.04] group-hover:scale-110 group-hover:-rotate-6 group-hover:text-zinc-900/[0.06] dark:group-hover:text-white/[0.08] transition-all duration-700 z-0 pointer-events-none`}>

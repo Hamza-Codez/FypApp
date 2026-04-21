@@ -129,7 +129,7 @@ export default function MyTasks() {
                                         onClick={() => handleShareReportClick(task.id, task.report_link)}
                                         className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2"
                                     >
-                                        {task.report_link ? <><MessageCircle className="size-3.5" /> Update Report Link</> : <><FilePlus className="size-3.5" /> Share Report to HR</>}
+                                        {task.report_link ? <><MessageCircle className="size-3.5" /> Update Report Link</> : <><FilePlus className="size-3.5" /> Submit Report</>}
                                     </button>
                                 </div>
                             </div>
