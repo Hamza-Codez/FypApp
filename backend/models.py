@@ -1,5 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
 
 class User(BaseModel):
     id: str
@@ -10,6 +11,7 @@ class User(BaseModel):
     gender: Optional[str]
     age: Optional[int]
     organization_name: Optional[str]
+    contact_info: Optional[str]
     org_architecture: Optional[str]
     org_headcounts: Optional[str]
     cultural_practices: Optional[str]
@@ -17,6 +19,23 @@ class User(BaseModel):
     profile_image: Optional[str]
     org_logo: Optional[str]
     created_by: Optional[str] # for employees
+    must_change_password: bool = True
+
+class EmployeeCreateResponse(BaseModel):
+    user: User
+    password: str
+
+class CSVImportResult(BaseModel):
+    email: str
+    password: str
+    status: str
+    error: Optional[str] = None
+
+class CSVImportResponse(BaseModel):
+    message: str
+    added_count: int
+    results: List[CSVImportResult]
+    errors: List[str]
 
 class Token(BaseModel):
     access_token: str
@@ -39,6 +58,7 @@ class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
     assigned_to: List[str] # List of employee ids
+    team_lead_id: Optional[str] = None
     priority: Optional[str] = "MEDIUM"
     status: Optional[str] = "PLANNING"
     start_date: Optional[str] = None
@@ -48,6 +68,7 @@ class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     assigned_to: Optional[List[str]] = None
+    team_lead_id: Optional[str] = None
     status: Optional[str] = None
     priority: Optional[str] = None
     start_date: Optional[str] = None
@@ -71,6 +92,7 @@ class TaskComment(BaseModel):
 class TaskUpdateStatus(BaseModel):
     status: str
     report_link: Optional[str] = None
+    comment: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
@@ -81,6 +103,7 @@ class UserUpdate(BaseModel):
     gender: Optional[str]
     age: Optional[int]
     organization_name: Optional[str]
+    contact_info: Optional[str]
     org_architecture: Optional[str]
     org_headcounts: Optional[str]
     cultural_practices: Optional[str]
@@ -102,3 +125,16 @@ class AIScreenerResult(BaseModel):
 
 class AIScreenerResponse(BaseModel):
     results: List[AIScreenerResult]
+
+class Notification(BaseModel):
+    id: Optional[str] = None
+    user_id: str
+    title: str
+    message: str
+    type: str = "info" # info, success, warning, error
+    is_read: bool = False
+    created_at: datetime
+    link: Optional[str] = None # Optional link to redirect on click
+
+class NotificationUpdate(BaseModel):
+    is_read: bool

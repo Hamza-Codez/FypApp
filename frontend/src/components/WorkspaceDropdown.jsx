@@ -5,6 +5,7 @@ import { setCurrentWorkspace } from "../features/workspaceSlice";
 import { deleteWorkspace } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import ConfirmDialog from "./ConfirmDialog";
 
 function WorkspaceDropdown() {
 
@@ -12,6 +13,7 @@ function WorkspaceDropdown() {
     const { user } = useSelector((state) => state.auth);
     const currentWorkspace = useSelector((state) => state.workspace?.currentWorkspace || null);
     const [isOpen, setIsOpen] = useState(false);
+    const [confirmState, setConfirmState] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
     const dropdownRef = useRef(null);
 
     const dispatch = useDispatch();
@@ -24,11 +26,17 @@ function WorkspaceDropdown() {
     }
 
     const handleDeleteWorkspace = async () => {
-        if (window.confirm("Are you sure you want to delete this workspace? This will delete all employees, projects, and your account. This action cannot be undone.")) {
-            await dispatch(deleteWorkspace());
-            toast.success("Workspace deleted successfully");
-            navigate('/login');
-        }
+        setConfirmState({
+            isOpen: true,
+            title: "Delete Workspace?",
+            message: "Are you sure you want to delete this workspace? This will delete all employees, projects, and your account. This action cannot be undone.",
+            onConfirm: async () => {
+                await dispatch(deleteWorkspace());
+                toast.success("Workspace deleted successfully");
+                navigate('/login');
+                setConfirmState(prev => ({ ...prev, isOpen: false }));
+            }
+        });
     };
 
     // Close dropdown on outside click
@@ -49,8 +57,8 @@ function WorkspaceDropdown() {
                     {currentWorkspace?.image_url ? (
                         <img src={currentWorkspace.image_url} alt={currentWorkspace.name} className="w-8 h-8 rounded shadow" />
                     ) : (
-                        <div className="w-8 h-8 rounded bg-blue-100 dark:bg-zinc-800 flex items-center justify-center">
-                            <Plus className="size-4 text-blue-600" />
+                        <div className="w-8 h-8 rounded bg-emerald-100 dark:bg-zinc-800 flex items-center justify-center">
+                            <Plus className="size-4 text-emerald-600" />
                         </div>
                     )}
                     <div className="min-w-0 flex-1">
@@ -83,7 +91,7 @@ function WorkspaceDropdown() {
                                     </p>
                                 </div>
                                 {currentWorkspace?.id === ws.id && (
-                                    <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                    <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                                 )}
                             </div>
                         ))}
@@ -93,7 +101,7 @@ function WorkspaceDropdown() {
 
                     <div className="p-1 space-y-1">
                         <div className="p-2 cursor-pointer rounded group hover:bg-gray-100 dark:hover:bg-zinc-800" >
-                            <p className="flex items-center text-xs gap-2 w-full text-blue-600 dark:text-blue-400 group-hover:text-blue-500 dark:group-hover:text-blue-300">
+                            <p className="flex items-center text-xs gap-2 w-full text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-300">
                                 <Plus className="w-4 h-4" /> Create Workspace
                             </p>
                         </div>
@@ -108,6 +116,15 @@ function WorkspaceDropdown() {
                     </div>
                 </div>
             )}
+            <ConfirmDialog 
+                isOpen={confirmState.isOpen}
+                title={confirmState.title}
+                message={confirmState.message}
+                type="danger"
+                confirmText="Delete Workspace"
+                onConfirm={confirmState.onConfirm}
+                onCancel={() => setConfirmState(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 }

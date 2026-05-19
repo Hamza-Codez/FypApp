@@ -21,8 +21,8 @@ export default function StatsGrid() {
             title: "Total Projects",
             value: stats.totalProjects,
             subtitle: `projects in ${currentWorkspace?.name}`,
-            bgColor: "bg-blue-500/10",
-            textColor: "text-blue-500",
+            bgColor: "bg-emerald-500/10",
+            textColor: "text-emerald-500",
         },
         {
             icon: CheckCircle,

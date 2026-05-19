@@ -12,6 +12,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
         name: "",
         description: "",
         assigned_to: [],
+        team_lead_id: "",
         priority: "MEDIUM",
         status: "PLANNING",
         start_date: "",
@@ -30,19 +31,27 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
         if (createProject.fulfilled.match(resultAction)) {
             toast.success("Project created successfully!");
             setIsDialogOpen(false);
-            setFormData({ name: "", description: "", assigned_to: [], priority: "MEDIUM", status: "PLANNING", start_date: "", end_date: "" });
+            setFormData({ name: "", description: "", assigned_to: [], team_lead_id: "", priority: "MEDIUM", status: "PLANNING", start_date: "", end_date: "" });
         } else {
             toast.error(resultAction.payload?.detail || "Failed to create project");
         }
     };
 
     const toggleEmployee = (id) => {
-        setFormData(prev => ({
-            ...prev,
-            assigned_to: prev.assigned_to.includes(id)
+        setFormData(prev => {
+            const newAssigned = prev.assigned_to.includes(id)
                 ? prev.assigned_to.filter(empId => empId !== id)
-                : [...prev.assigned_to, id]
-        }));
+                : [...prev.assigned_to, id];
+            
+            // If the current team lead is removed from assigned members, clear team_lead_id
+            const newTeamLeadId = newAssigned.includes(prev.team_lead_id) ? prev.team_lead_id : "";
+            
+            return {
+                ...prev,
+                assigned_to: newAssigned,
+                team_lead_id: newTeamLeadId
+            };
+        });
     };
 
     if (!isDialogOpen) return null;
@@ -65,7 +74,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                         {/* Left Column */}
                         <div className="space-y-4">
                             {/* Project Identity Box */}
-                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-4 bg-white dark:bg-zinc-900 shadow-sm focus-within:border-blue-500 transition-all">
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-4 bg-white dark:bg-zinc-900 shadow-sm focus-within:border-emerald-500 transition-all">
                                 <label className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest block mb-1">Project Identity</label>
                                 <input
                                     type="text"
@@ -88,7 +97,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                             onClick={() => setFormData({ ...formData, priority: p })}
                                             className={`py-2 text-[10px] font-bold rounded-md border transition-all uppercase tracking-widest ${
                                                 formData.priority === p 
-                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                                                ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/20' 
                                                 : 'border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 bg-white dark:bg-zinc-900'
                                             }`}
                                         >
@@ -118,12 +127,36 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Team Lead Selection */}
+                            <div className="space-y-1.5 pt-2">
+                                <label className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest pl-1">Designate Team Lead</label>
+                                <select 
+                                    value={formData.team_lead_id}
+                                    onChange={(e) => setFormData({ ...formData, team_lead_id: e.target.value })}
+                                    className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-2 text-[10px] font-bold text-zinc-900 dark:text-white outline-none focus:border-emerald-500 transition-all appearance-none"
+                                    required
+                                >
+                                    <option value="" disabled>Select from assigned members...</option>
+                                    {formData.assigned_to.map(id => {
+                                        const emp = employees.find(e => e.id === id);
+                                        return (
+                                            <option key={id} value={id}>
+                                                {emp ? `${emp.first_name} ${emp.last_name}` : "Unknown User"}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                                {formData.assigned_to.length === 0 && (
+                                    <p className="text-[8px] text-amber-600 font-bold uppercase tracking-tighter pl-1">Assign members first to select a lead</p>
+                                )}
+                            </div>
                         </div>
 
                         {/* Right Column */}
                         <div className="space-y-4">
                             {/* Project Overview Box */}
-                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-3.5 bg-white dark:bg-zinc-900 shadow-sm focus-within:border-blue-500 transition-all">
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-3.5 bg-white dark:bg-zinc-900 shadow-sm focus-within:border-emerald-500 transition-all">
                                 <label className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest block mb-1">Project Overview</label>
                                 <textarea
                                     value={formData.description}
@@ -135,7 +168,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
                             {/* Dates Row */}
                             <div className="grid grid-cols-2 gap-2">
-                                <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-2 bg-white dark:bg-zinc-900 focus-within:border-blue-500 transition-all">
+                                <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-2 bg-white dark:bg-zinc-900 focus-within:border-emerald-500 transition-all">
                                     <label className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">Start Date</label>
                                     <input
                                         type="date"
@@ -144,7 +177,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                         className="w-full bg-transparent text-[10px] font-bold text-zinc-900 dark:text-white outline-none"
                                     />
                                 </div>
-                                <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-2 bg-white dark:bg-zinc-900 focus-within:border-blue-500 transition-all">
+                                <div className="border border-zinc-200 dark:border-zinc-800 rounded-md p-2 bg-white dark:bg-zinc-900 focus-within:border-emerald-500 transition-all">
                                     <label className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest block mb-0.5">Target Deadline</label>
                                     <input
                                         type="date"
@@ -161,7 +194,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                     <label className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest flex items-center gap-2">
                                         <Users className="size-3" /> Assign Team Members
                                     </label>
-                                    <span className="text-[9px] font-bold text-blue-600">
+                                    <span className="text-[9px] font-bold text-emerald-600">
                                         {formData.assigned_to.length} Selected
                                     </span>
                                 </div>
@@ -174,14 +207,15 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                             onClick={() => toggleEmployee(emp.id)}
                                             className={`flex items-center gap-2.5 p-2 rounded-md cursor-pointer transition-all ${
                                                 formData.assigned_to.includes(emp.id) 
-                                                ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400' 
+                                                ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' 
                                                 : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400'
                                             }`}
                                         >
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-[10px] font-bold truncate">{emp.first_name} {emp.last_name}</p>
+                                                <p className="text-[8px] uppercase tracking-wider text-zinc-400 font-medium truncate">{emp.role || 'Employee'}</p>
                                             </div>
-                                            {formData.assigned_to.includes(emp.id) && <div className="size-1 bg-blue-600 rounded-full" />}
+                                            {formData.assigned_to.includes(emp.id) && <div className="size-1 bg-emerald-600 rounded-full" />}
                                         </div>
                                     ))}
                                 </div>
@@ -201,7 +235,7 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                         <button 
                             type="submit" 
                             disabled={isSubmitting} 
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase tracking-widest text-[10px] py-2 px-7 rounded-md shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-[10px] py-2 px-7 rounded-md shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
                         >
                             {isSubmitting ? "Processing..." : "Confirm & Launch"}
                         </button>

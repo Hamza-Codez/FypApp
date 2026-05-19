@@ -83,7 +83,7 @@ async def login_for_access_token(
     from datetime import timedelta
     expires_delta = None
     if remember_me:
-        expires_delta = timedelta(days=7)
+        expires_delta = timedelta(days=30)
         
     access_token = create_access_token(
         data={"sub": user["username"]},

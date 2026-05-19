@@ -112,10 +112,10 @@ const TaskDetails = () => {
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             placeholder="Write a comment..."
-                            className="w-full dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-md p-2 text-sm text-gray-900 dark:text-zinc-200 resize-none focus:outline-none focus:ring-1 focus:ring-blue-600"
+                            className="w-full dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-md p-2 text-sm text-gray-900 dark:text-zinc-200 resize-none focus:outline-none focus:ring-1 focus:ring-emerald-600"
                             rows={3}
                         />
-                        <button onClick={handleAddComment} className="bg-gradient-to-l from-blue-500 to-blue-600 transition-colors text-white text-sm px-5 py-2 rounded " >
+                        <button onClick={handleAddComment} className="bg-gradient-to-l from-emerald-500 to-emerald-600 transition-colors text-white text-sm px-5 py-2 rounded " >
                             Post
                         </button>
                     </div>
@@ -132,7 +132,7 @@ const TaskDetails = () => {
                             <span className="px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-300 text-xs">
                                 {task.status}
                             </span>
-                            <span className="px-2 py-0.5 rounded bg-blue-200 dark:bg-blue-900 text-blue-900 dark:text-blue-300 text-xs">
+                            <span className="px-2 py-0.5 rounded bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-300 text-xs">
                                 {task.type}
                             </span>
                             <span className="px-2 py-0.5 rounded bg-green-200 dark:bg-emerald-900 text-green-900 dark:text-emerald-300 text-xs">

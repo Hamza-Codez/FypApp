@@ -26,18 +26,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     
     # Transform to dict
-    currentUser = user_helper(user)
+    current_user = user_helper(user)
     
     # If the user is an employee, fetch the org logo from who created them (HR)
-    if currentUser.get("role") == "EMPLOYEE" and currentUser.get("created_by"):
-        hr_user = await users_collection.find_one({"_id": ObjectId(currentUser["created_by"])})
+    if current_user.get("role") == "EMPLOYEE" and current_user.get("created_by"):
+        hr_user = await users_collection.find_one({"_id": ObjectId(current_user["created_by"])})
         if hr_user and hr_user.get("org_logo"):
-            currentUser["org_logo"] = hr_user.get("org_logo")
+            current_user["org_logo"] = hr_user.get("org_logo")
             
-    return currentUser
+    return current_user
 
 async def get_current_hr_user(current_user: dict = Depends(get_current_user)):
-    print(f"DEBUG: Current user role: {current_user.get('role')}")
     if current_user.get("role") != "HR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ChevronRightIcon, SettingsIcon, KanbanIcon, ChartColumnIcon, CalendarIcon, ArrowRightIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
@@ -10,9 +10,19 @@ const ProjectSidebar = () => {
     const [expandedProjects, setExpandedProjects] = useState(new Set());
     const [searchParams] = useSearchParams();
 
-    const projects = useSelector(
-        (state) => state?.workspace?.currentWorkspace?.projects || []
+    const { user } = useSelector((state) => state.auth);
+    const rawProjects = useSelector(
+        (state) => state?.workspace?.currentWorkspace?.projects || state?.workspace?.projects || []
     );
+
+    const projects = useMemo(() => {
+        const isHR = user?.role?.toUpperCase() === 'HR';
+        if (isHR) return rawProjects;
+        return rawProjects.filter(p => 
+            p.assigned_to?.some(id => id == user?.id || id.toString() === user?.id?.toString()) ||
+            p.team_lead_id == user?.id || p.team_lead_id?.toString() === user?.id?.toString()
+        );
+    }, [rawProjects, user]);
 
     const getProjectSubItems = (projectId) => [
         { title: 'Tasks', icon: KanbanIcon, url: `/projectsDetail?id=${projectId}&tab=tasks` },
@@ -43,9 +53,9 @@ const ProjectSidebar = () => {
             <div className="space-y-1 px-3">
                 {projects.map((project) => (
                     <div key={project.id}>
-                        <button onClick={() => toggleProject(project.id)} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white" >
+                        <button onClick={() => toggleProject(project.id)} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-gray-700 dark:text-zinc-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-450" >
                             <ChevronRightIcon className={`size-3 text-gray-500 dark:text-zinc-400 transition-transform duration-200 ${expandedProjects.has(project.id) && 'rotate-90'}`} />
-                            <div className="size-2 rounded-full bg-blue-500" />
+                            <div className="size-2 rounded-full bg-emerald-500" />
                             <span className="truncate max-w-40 text-sm">{project.name}</span>
                         </button>
 
@@ -59,7 +69,7 @@ const ProjectSidebar = () => {
                                         searchParams.get('tab') === subItem.title.toLowerCase();
 
                                     return (
-                                        <Link key={subItem.title} to={subItem.url} className={`flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors duration-200 text-xs ${isActive ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800'}`} >
+                                        <Link key={subItem.title} to={subItem.url} className={`flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors duration-200 text-xs ${isActive ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800'}`} >
                                             <subItem.icon className="size-3" />
                                             {subItem.title}
                                         </Link>

@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 
 const typeIcons = {
     BUG: { icon: Bug, color: "text-red-500 dark:text-red-400" },
-    FEATURE: { icon: Zap, color: "text-blue-500 dark:text-blue-400" },
+    FEATURE: { icon: Zap, color: "text-emerald-500 dark:text-emerald-400" },
     TASK: { icon: Square, color: "text-green-500 dark:text-green-400" },
     IMPROVEMENT: { icon: MessageSquare, color: "text-amber-500 dark:text-amber-400" },
     OTHER: { icon: GitCommit, color: "text-purple-500 dark:text-purple-400" },

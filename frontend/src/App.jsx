@@ -1,28 +1,46 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./pages/Layout";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import Dashboard from "./pages/Dashboard";
-import Projects from "./pages/Projects";
-import Team from "./pages/Team";
-import ProjectDetails from "./pages/ProjectDetails";
-import TaskDetails from "./pages/TaskDetails";
-import AIScreener from "./pages/AIScreener";
-import Login from "./pages/Auth/Login";
-import SignupHR from "./pages/Auth/SignupHR";
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react";
 import { fetchMe } from "./features/auth/authSlice";
 import { loadTheme } from "./features/themeSlice";
-import { LayoutDashboardIcon, FolderOpenIcon, UsersIcon, SettingsIcon, BrainCircuitIcon } from 'lucide-react';
-import Home from "./pages/Home";
 
-import Profile from "./pages/Profile";
-import MyTasks from "./pages/MyTasks";
-import TaskReports from "./pages/TaskReports";
+// Pages
+const Layout = lazy(() => import("./pages/Layout"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Projects = lazy(() => import("./pages/Projects"));
+const Team = lazy(() => import("./pages/Team"));
+const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
+const TaskDetails = lazy(() => import("./pages/TaskDetails"));
+const AIScreener = lazy(() => import("./pages/AIScreener"));
+const Login = lazy(() => import("./pages/Auth/Login"));
+const SignupHR = lazy(() => import("./pages/Auth/SignupHR"));
+const Home = lazy(() => import("./pages/Home"));
+const Profile = lazy(() => import("./pages/Profile"));
+const MyTasks = lazy(() => import("./pages/MyTasks"));
+const TaskReports = lazy(() => import("./pages/TaskReports"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+
+const ChangePassword = lazy(() => import("./pages/Auth/ChangePassword"));
+
+const LoadingScreen = () => (
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950">
+        <div className="flex flex-col items-center gap-4">
+            <div className="size-12 border-4 border-emerald-600/20 border-t-emerald-600 rounded-full animate-spin"></div>
+            <p className="text-zinc-500 dark:text-zinc-400 font-medium animate-pulse">Loading workspace...</p>
+        </div>
+    </div>
+);
 
 const ProtectedRoute = ({ children }) => {
-    const { token } = useSelector((state) => state.auth);
+    const { token, user } = useSelector((state) => state.auth);
     if (!token) return <Navigate to="/" />;
+    
+    // Redirect if password change is required, but allow access to the change-password page itself
+    if (user?.must_change_password && window.location.pathname !== '/change-password') {
+        return <Navigate to="/change-password" />;
+    }
+    
     return children;
 };
 
@@ -36,13 +54,15 @@ const App = () => {
             dispatch(fetchMe());
         }
     }, [dispatch, token, user]);
+
     return (
-        <>
+        <Suspense fallback={<LoadingScreen />}>
             <Toaster />
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup-hr" element={<SignupHR />} />
+                <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
                 <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route index element={<Dashboard />} />
                     <Route path="team" element={<Team />} />
@@ -53,10 +73,10 @@ const App = () => {
                     <Route path="my-tasks" element={<MyTasks />} />
                     <Route path="task-reports" element={<TaskReports />} />
                     <Route path="profile" element={<Profile />} />
-
+                    <Route path="notifications" element={<Notifications />} />
                 </Route>
             </Routes>
-        </>
+        </Suspense>
     );
 };
 

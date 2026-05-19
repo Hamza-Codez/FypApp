@@ -12,7 +12,7 @@ export default function CustomModal({
   placeholder = "Enter here...",
   confirmText = "Continue",
   cancelText = "Cancel",
-  variant = "blue" // "blue", "red", "emerald"
+  variant = "emerald" // "emerald", "red", "emerald"
 }) {
   const [inputValue, setInputValue] = useState(defaultValue);
 
@@ -32,12 +32,12 @@ export default function CustomModal({
 
   const colors = {
     blue: {
-      bg: "bg-blue-600",
-      hover: "hover:bg-blue-700",
-      text: "text-blue-600",
-      light: "bg-blue-50 dark:bg-blue-900/20",
-      border: "border-blue-100 dark:border-blue-800/40",
-      icon: <HelpCircle className="size-5 text-blue-600 dark:text-blue-400" />
+      bg: "bg-emerald-600",
+      hover: "hover:bg-emerald-700",
+      text: "text-emerald-600",
+      light: "bg-emerald-50 dark:bg-emerald-900/20",
+      border: "border-emerald-100 dark:border-emerald-800/40",
+      icon: <HelpCircle className="size-5 text-emerald-600 dark:text-emerald-400" />
     },
     red: {
       bg: "bg-red-600",
@@ -63,7 +63,7 @@ export default function CustomModal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-zinc-950/40 dark:bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="fixed inset-0 w-full h-full bg-zinc-950/50 dark:bg-zinc-950/70 backdrop-blur-md animate-in fade-in duration-300"
         onClick={onClose}
       />
       
@@ -100,7 +100,7 @@ export default function CustomModal({
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder={placeholder}
-                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md px-4 py-3 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/40 outline-none transition-all uppercase tracking-widest"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md px-4 py-3 text-xs font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 outline-none transition-all uppercase tracking-widest"
                 />
               </div>
             )}

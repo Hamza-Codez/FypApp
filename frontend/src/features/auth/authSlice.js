@@ -116,6 +116,16 @@ const authSlice = createSlice({
             })
             .addCase(updateProfile.fulfilled, (state, action) => {
                 state.user = action.payload;
+            })
+            .addCase(changePassword.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(changePassword.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = action.payload;
+            })
+            .addCase(changePassword.rejected, (state) => {
+                state.loading = false;
             });
     },
 });

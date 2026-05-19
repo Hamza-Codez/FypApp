@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Plus, Search, FolderOpen } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 import CreateProjectDialog from "../components/CreateProjectDialog";
-import { fetchProjects } from "../features/workspaceSlice";
+import { fetchProjects, fetchEmployees } from "../features/workspaceSlice";
 
 export default function Projects() {
     const dispatch = useDispatch();
@@ -12,9 +12,9 @@ export default function Projects() {
 
     useEffect(() => {
         dispatch(fetchProjects());
+        dispatch(fetchEmployees());
     }, [dispatch]);
 
-    const [filteredProjects, setFilteredProjects] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [filters, setFilters] = useState({
@@ -22,11 +22,20 @@ export default function Projects() {
         priority: "ALL",
     });
 
-    // shared classes for selects so options render correctly and dark mode is handled
-    const selectClasses = "px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm bg-white dark:bg-zinc-900 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500";
+    const selectClasses = "px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm bg-white dark:bg-zinc-900 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
-    const filterProjects = () => {
-        let filtered = projects;
+    // Filter projects that the current user is assigned to or leads (restricted for non-HR employees)
+    const visibleProjects = useMemo(() => {
+        const isHR = user?.role?.toUpperCase() === 'HR';
+        if (isHR) return projects;
+        return projects.filter(p => 
+            p.assigned_to?.some(id => id == user?.id || id.toString() === user?.id?.toString()) ||
+            p.team_lead_id == user?.id || p.team_lead_id?.toString() === user?.id?.toString()
+        );
+    }, [projects, user]);
+
+    const filteredProjects = useMemo(() => {
+        let filtered = visibleProjects;
 
         if (searchTerm) {
             filtered = filtered.filter(
@@ -46,12 +55,8 @@ export default function Projects() {
             );
         }
 
-        setFilteredProjects(filtered);
-    };
-
-    useEffect(() => {
-        filterProjects();
-    }, [projects, searchTerm, filters]);
+        return filtered;
+    }, [visibleProjects, searchTerm, filters]);
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
@@ -62,7 +67,7 @@ export default function Projects() {
                     <p className="text-gray-500 dark:text-zinc-400 text-sm"> Manage and track your projects </p>
                 </div>
                 {user?.role?.toUpperCase() === 'HR' && (
-                    <button onClick={() => setIsDialogOpen(true)} className="flex items-center px-5 py-2 text-sm rounded bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:opacity-90 transition" >
+                    <button onClick={() => setIsDialogOpen(true)} className="flex items-center px-5 py-2 text-sm rounded bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:opacity-90 transition" >
                         <Plus className="size-4 mr-2" /> New Project
                     </button>
                 )}
@@ -73,7 +78,7 @@ export default function Projects() {
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-400 w-4 h-4" />
-                    <input onChange={(e) => setSearchTerm(e.target.value)} value={searchTerm} className="w-full pl-10 text-sm pr-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 focus:border-blue-500 outline-none" placeholder="Search projects..." />
+                    <input onChange={(e) => setSearchTerm(e.target.value)} value={searchTerm} className="w-full pl-10 text-sm pr-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 focus:border-emerald-500 outline-none" placeholder="Search projects..." />
                 </div>
                 {/* filter selects - Only for HR */}
                 {user?.role?.toUpperCase() === 'HR' && (
@@ -119,7 +124,7 @@ export default function Projects() {
                             {user?.role === 'HR' ? 'Create your first project to get started' : 'You are not assigned to any projects yet'}
                         </p>
                         {user?.role?.toUpperCase() === 'HR' && (
-                            <button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mx-auto text-sm" >
+                            <button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded mx-auto text-sm" >
                                 <Plus className="size-4" />
                                 Create Project
                             </button>

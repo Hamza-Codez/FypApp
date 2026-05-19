@@ -1,5 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap');
 @import "tailwindcss";
+
+@theme {
+    --font-serif: "Playfair Display", Georgia, serif;
+    --font-sans: "DM Sans", "Helvetica Neue", sans-serif;
+}
+
+:root {
+    --lp-bg:        #FFFFFF;
+    --lp-surface:   #F7F7F5;
+    --lp-dark:      #0F0F0E;
+    --lp-primary:   #111111;
+    --lp-secondary: #6B6B6B;
+    --lp-muted:     #AAAAAA;
+    --lp-border:    #E5E5E5;
+    --lp-green:     #E8F5E3;
+    --lp-green-text:#2E7D32;
+}
 
 * {
     font-family: 'Outfit', sans-serif;
@@ -17,9 +34,23 @@
     display: none;
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #10b98120;
+    border-radius: 10px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #10b98140;
+}
+
 @layer base {
     body {
-        @apply bg-slate-50 text-slate-900 selection:bg-blue-500/30;
+        @apply bg-slate-50 text-slate-900 selection:bg-emerald-500/30;
     }
 
     .dark body {
@@ -56,8 +87,8 @@
     /* Interactive Inputs - Premium Custom Checkbox */
     input[type="checkbox"] {
         @apply relative appearance-none w-[18px] h-[18px] rounded-md border border-zinc-300 dark:border-zinc-700
-                bg-white dark:bg-zinc-900 checked:bg-blue-600 checked:border-blue-600 
-                transition-all cursor-pointer hover:border-blue-400 active:scale-90;
+                bg-white dark:bg-zinc-900 checked:bg-emerald-600 checked:border-emerald-600 
+                transition-all cursor-pointer hover:border-emerald-400 active:scale-90;
     }
 
     /* Checkmark centering and sizing */
@@ -105,5 +136,3 @@ body:not(.dark) .border-gray-200,
 body:not(.dark) .border-slate-300 {
     border-color: #5f5f5f8a !important; /* slate-300 */
 }
-
-/* border-color: #8e86868a !important; slate-300 */

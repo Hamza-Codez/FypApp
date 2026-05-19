@@ -4,17 +4,17 @@ import pandas as pd
 import io
 import random
 import string
-from database import users_collection, user_helper
+from database import users_collection, user_helper, create_notification
 from utils import get_password_hash, send_welcome_email
 from deps import get_current_hr_user, get_current_user
-from models import EmployeeCreate, User
+from models import EmployeeCreate, User, EmployeeCreateResponse, CSVImportResponse, CSVImportResult
 
 router = APIRouter()
 
 def generate_random_password(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
-@router.post("/employee", response_model=User)
+@router.post("/employee", response_model=EmployeeCreateResponse)
 async def create_employee(
     employee: EmployeeCreate,
     hr_user: dict = Depends(get_current_hr_user)
@@ -32,22 +32,25 @@ async def create_employee(
         "username": employee.username or employee.email,
         "role": employee.role or "EMPLOYEE",
         "created_by": hr_user["id"],
-        "organization_name": hr_user.get("organization_name")
+        "organization_name": hr_user.get("organization_name"),
+        "must_change_password": True
     })
 
     new_user = await users_collection.insert_one(user_dict)
     
-    # Send email with password
-    await send_welcome_email(
-        employee.email, 
-        raw_password, 
-        employee.first_name, 
-        employee.role or "EMPLOYEE",
-        organization_name=user_dict.get("organization_name", "Office Management System")
+    created_user = await users_collection.find_one({"_id": new_user.inserted_id})
+    
+    await create_notification(
+        user_id=hr_user["id"],
+        title="New User Added",
+        message=f"Employee {employee.first_name} {employee.last_name} has been added to the workspace.",
+        type="success"
     )
 
-    created_user = await users_collection.find_one({"_id": new_user.inserted_id})
-    return user_helper(created_user)
+    return {
+        "user": user_helper(created_user),
+        "password": raw_password
+    }
 
 @router.post("/employee/csv")
 async def create_employees_from_csv(
@@ -101,6 +104,7 @@ async def create_employees_from_csv(
 
     added_count = 0
     errors = []
+    results = []
 
     for index, row in df.iterrows():
         try:
@@ -109,6 +113,7 @@ async def create_employees_from_csv(
             
             existing_user = await users_collection.find_one({"email": email})
             if existing_user:
+                results.append(CSVImportResult(email=email, password="", status="SKIP", error="Email exists"))
                 errors.append(f"Row {index}: Email {email} already exists.")
                 continue
 
@@ -126,15 +131,25 @@ async def create_employees_from_csv(
                 "role": str(row.get(actual_mapping.get('role', ''), 'Employee')).strip(),
                 "password": hashed_password,
                 "created_by": hr_user["id"],
-                "organization_name": hr_user.get("organization_name")
+                "organization_name": hr_user.get("organization_name"),
+                "must_change_password": True
             }
 
             await users_collection.insert_one(user_dict)
+            results.append(CSVImportResult(email=email, password=raw_password, status="SUCCESS"))
             added_count += 1
+            
+            await create_notification(
+                user_id=hr_user["id"],
+                title="New User Added (CSV)",
+                message=f"Employee {user_dict['first_name']} {user_dict['last_name']} added via CSV.",
+                type="success"
+            )
         except Exception as e:
+            results.append(CSVImportResult(email=row.get(actual_mapping.get('email', 'unknown'), 'unknown'), password="", status="ERROR", error=str(e)))
             errors.append(f"Row {index}: {str(e)}")
 
-    return {"message": "CSV processed", "added_count": added_count, "errors": errors}
+    return CSVImportResponse(message="CSV processed", added_count=added_count, results=results, errors=errors)
 
 @router.get("/employees", response_model=List[User])
 async def get_employees(current_user: dict = Depends(get_current_user)):
@@ -187,10 +202,11 @@ async def change_password(
     hashed_password = get_password_hash(password_data.new_password)
     await users_collection.update_one(
         {"_id": ObjectId(current_user["id"])},
-        {"$set": {"password": hashed_password}}
+        {"$set": {"password": hashed_password, "must_change_password": False}}
     )
     
-    return {"message": "Password updated successfully"}
+    updated_user = await users_collection.find_one({"_id": ObjectId(current_user["id"])})
+    return user_helper(updated_user)
 
 @router.delete("/employee/{employee_id}")
 async def delete_employee(
@@ -198,7 +214,32 @@ async def delete_employee(
     hr_user: dict = Depends(get_current_hr_user)
 ):
     from bson import ObjectId
-    # Ensure HR can only delete employees they created
+    from database import projects_collection, tasks_collection
+    
+    # 1. Clean up project assignments and team leads
+    async for project in projects_collection.find({"assigned_to": employee_id}):
+        new_assigned = [uid for uid in project.get("assigned_to", []) if uid != employee_id]
+        update_fields = {"assigned_to": new_assigned}
+        if project.get("team_lead_id") == employee_id:
+            update_fields["team_lead_id"] = ""
+        await projects_collection.update_one({"_id": project["_id"]}, {"$set": update_fields})
+        
+    # 2. Clean up task assignments
+    async for task in tasks_collection.find({"assigned_to": employee_id}):
+        task_assigned = task.get("assigned_to", [])
+        new_task_assigned = [uid for uid in task_assigned if uid != employee_id]
+        
+        # If task has no assignees left, we assign to the project's team lead
+        if task_assigned and not new_task_assigned:
+            project = await projects_collection.find_one({"_id": task["project_id"]})
+            if project and project.get("team_lead_id") and project.get("team_lead_id") != employee_id:
+                new_task_assigned = [project["team_lead_id"]]
+            else:
+                new_task_assigned = []
+                
+        await tasks_collection.update_one({"_id": task["_id"]}, {"$set": {"assigned_to": new_task_assigned}})
+        
+    # 3. Ensure HR can only delete employees they created
     result = await users_collection.delete_one({
         "_id": ObjectId(employee_id),
         "created_by": hr_user["id"]
@@ -207,6 +248,13 @@ async def delete_employee(
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Employee not found or not authorized")
         
+    await create_notification(
+        user_id=hr_user["id"],
+        title="Employee Removed",
+        message=f"Employee account (ID: {employee_id}) has been removed.",
+        type="warning"
+    )
+    
     return {"message": "Employee deleted successfully"}
 
 @router.delete("/employees/all")
@@ -239,6 +287,15 @@ async def delete_me(current_user: dict = Depends(get_current_user)):
         
     # Delete the user themselves
     from bson import ObjectId
+    
+    if current_user["role"] == "HR":
+        await create_notification(
+            user_id=current_user["id"],
+            title="Workspace Deleted",
+            message="Your workspace and all associated data have been scheduled for deletion.",
+            type="error"
+        )
+
     await users_collection.delete_one({"_id": ObjectId(current_user["id"])})
     
     return {"message": "Workspace deleted successfully"}

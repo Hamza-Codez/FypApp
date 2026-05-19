@@ -83,7 +83,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                 </button>
                 
                 <div className="flex items-center gap-3 mb-8">
-                    <div className="size-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                    <div className="size-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
                         <CalendarIcon className="size-4 stroke-[3]" />
                     </div>
                     <h2 className="text-xl font-bold tracking-tight">Create New Task</h2>
@@ -100,7 +100,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     value={formData.title} 
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
                                     placeholder="e.g. Design user interface" 
-                                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" 
+                                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" 
                                     required 
                                 />
                             </div>
@@ -112,7 +112,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     value={formData.description} 
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
                                     placeholder="Provide detailed instructions for the task..." 
-                                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold h-32 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none" 
+                                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold h-32 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none" 
                                 />
                             </div>
 
@@ -121,7 +121,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                 <button 
                                     type="submit" 
                                     disabled={isSubmitting} 
-                                    className="px-10 py-2.5 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/30 transition-all active:scale-[0.98] disabled:opacity-50"
+                                    className="px-10 py-2.5 rounded-lg bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 shadow-xl shadow-emerald-500/30 transition-all active:scale-[0.98] disabled:opacity-50"
                                 >
                                     {isSubmitting ? "Syncing..." : "Publish Task"}
                                 </button>
@@ -144,7 +144,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     <select 
                                         value={formData.type} 
                                         onChange={(e) => setFormData({ ...formData, type: e.target.value })} 
-                                        className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                                        className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
                                     >
                                         <option value="BUG">Bug</option>
                                         <option value="FEATURE">Feature</option>
@@ -159,7 +159,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     <select 
                                         value={formData.priority} 
                                         onChange={(e) => setFormData({ ...formData, priority: e.target.value })} 
-                                        className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                                        className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
                                     >
                                         <option value="LOW">Low</option>
                                         <option value="MEDIUM">Medium</option>
@@ -176,7 +176,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     value={formData.due_date} 
                                     onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} 
                                     min={new Date().toISOString().split('T')[0]} 
-                                    className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer" 
+                                    className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer" 
                                 />
                             </div>
 
@@ -188,36 +188,53 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                         <button 
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, assigned_to: teamMembers.map(m => m.id) }))}
-                                            className="text-[9px] text-blue-600 font-black tracking-widest uppercase hover:underline"
+                                            className="text-[9px] text-emerald-600 font-black tracking-widest uppercase hover:underline"
                                         >
                                             All
                                         </button>
                                     )}
                                 </div>
                                 <div className="space-y-2 p-2 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 max-h-40 overflow-y-auto custom-scrollbar">
-                                    {teamMembers.map((emp) => (
-                                        <label key={emp.id} className="flex items-center gap-2.5 px-2 py-1.5 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-100 dark:border-zinc-800 shadow-sm cursor-pointer hover:border-blue-500/40 hover:bg-blue-50/10 dark:hover:bg-blue-900/10 transition-all group">
-                                            <input 
-                                                type="checkbox"
-                                                checked={formData.assigned_to === emp.id || (Array.isArray(formData.assigned_to) && formData.assigned_to.includes(emp.id))}
-                                                onChange={(e) => {
-                                                    const isChecked = e.target.checked;
-                                                    setFormData(prev => {
-                                                        const current = Array.isArray(prev.assigned_to) ? prev.assigned_to : prev.assigned_to ? [prev.assigned_to] : [];
-                                                        if (isChecked) {
-                                                            return { ...prev, assigned_to: [...current, emp.id] };
-                                                        } else {
-                                                            return { ...prev, assigned_to: current.filter(id => id !== emp.id) };
-                                                        }
-                                                    });
-                                                }}
-                                            />
-                                            <div className="flex flex-col min-w-0">
-                                                <span className="text-[10px] font-bold text-zinc-800 dark:text-zinc-100 uppercase tracking-tight truncate">{emp.first_name} {emp.last_name}</span>
-                                                <span className="text-[8px] font-medium text-zinc-400 uppercase tracking-widest truncate">{emp.role}</span>
-                                            </div>
-                                        </label>
-                                    ))}
+                                    {teamMembers.map((emp) => {
+                                        const isLead = emp.id == project?.team_lead_id || (emp.id && project?.team_lead_id && emp.id.toString() === project.team_lead_id.toString());
+                                        return (
+                                            <label 
+                                                key={emp.id} 
+                                                className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg border shadow-sm cursor-pointer transition-all group ${
+                                                    isLead 
+                                                    ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50' 
+                                                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 hover:border-emerald-500/40 hover:bg-emerald-50/10 dark:hover:bg-emerald-900/10'
+                                                }`}
+                                            >
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={formData.assigned_to === emp.id || (Array.isArray(formData.assigned_to) && formData.assigned_to.includes(emp.id))}
+                                                    onChange={(e) => {
+                                                        const isChecked = e.target.checked;
+                                                        setFormData(prev => {
+                                                            const current = Array.isArray(prev.assigned_to) ? prev.assigned_to : prev.assigned_to ? [prev.assigned_to] : [];
+                                                            if (isChecked) {
+                                                                return { ...prev, assigned_to: [...current, emp.id] };
+                                                            } else {
+                                                                return { ...prev, assigned_to: current.filter(id => id !== emp.id) };
+                                                            }
+                                                        });
+                                                    }}
+                                                />
+                                                <div className="flex flex-col min-w-0">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-[10px] font-bold text-zinc-800 dark:text-zinc-100 uppercase tracking-tight truncate">{emp.first_name} {emp.last_name}</span>
+                                                        {isLead && (
+                                                            <span className="text-[6.5px] font-black uppercase tracking-wider bg-emerald-600 dark:bg-emerald-500 text-white px-1.5 py-0.5 rounded leading-none">
+                                                                Lead
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-[8px] font-medium text-zinc-400 uppercase tracking-widest truncate">{emp.role}</span>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

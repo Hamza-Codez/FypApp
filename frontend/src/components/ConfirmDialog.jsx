@@ -12,10 +12,10 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel, type = 'da
             border: 'border-red-100 dark:border-red-900/30'
         },
         info: {
-            icon: <AlertCircle className="size-6 text-blue-600" />,
-            iconBg: 'bg-blue-50 dark:bg-blue-950/30',
-            button: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20',
-            border: 'border-blue-100 dark:border-blue-900/30'
+            icon: <AlertCircle className="size-6 text-emerald-600" />,
+            iconBg: 'bg-emerald-50 dark:bg-emerald-950/30',
+            button: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20',
+            border: 'border-emerald-100 dark:border-emerald-900/30'
         }
     };
 
@@ -25,7 +25,7 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel, type = 'da
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+                className="fixed inset-0 w-full h-full bg-zinc-900/50 dark:bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
                 onClick={onCancel}
             />
             

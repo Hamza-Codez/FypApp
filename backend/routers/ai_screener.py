@@ -7,14 +7,17 @@ from groq import Groq
 from deps import get_current_hr_user
 from models import AIScreenerResponse, AIScreenerResult
 from dotenv import load_dotenv
+from bson import ObjectId
+from pydantic import BaseModel
+from database import ai_analysis_collection
 
 # Optional PDF/DOCX dependencies
-fitz = None
-fitz_import_error = None
+pypdf = None
+pypdf_import_error = None
 try:
-    import fitz  # PyMuPDF
+    import pypdf
 except Exception as e:
-    fitz_import_error = str(e)
+    pypdf_import_error = str(e)
 
 Document = None
 docx_import_error = None
@@ -32,9 +35,11 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY", "YOUR_GROQ_API_KEY"))
 
 def extract_text_from_pdf(file_content: bytes) -> str:
     text = ""
-    with fitz.open(stream=file_content, filetype="pdf") as doc:
-        for page in doc:
-            text += page.get_text()
+    reader = pypdf.PdfReader(io.BytesIO(file_content))
+    for page in reader.pages:
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text + "\n"
     return text
 
 def extract_text_from_docx(file_content: bytes) -> str:
@@ -56,10 +61,10 @@ async def analyze_cvs(
         
         try:
             if filename.lower().endswith('.pdf'):
-                if fitz is None:
+                if pypdf is None:
                     raise HTTPException(
                         status_code=503,
-                        detail=f"PDF parsing not available: {fitz_import_error or 'pymupdf not installed'}"
+                        detail=f"PDF parsing not available: {pypdf_import_error or 'pypdf not installed'}"
                     )
                 cv_text = extract_text_from_pdf(content)
             elif filename.lower().endswith('.docx'):
@@ -72,10 +77,18 @@ async def analyze_cvs(
             else:
                 cv_text = content.decode('utf-8', errors='ignore')
             
-            print(f"Extracted {len(cv_text)} characters from {filename}")
+            # Text extracted successfully
         except Exception as e:
-            print(f"Text Extraction Error for {filename}: {str(e)}")
-            continue # Skip failed files
+            print(f"Error extracting text from {filename}: {str(e)}")
+            results.append(AIScreenerResult(
+                candidate_name=filename,
+                score=0,
+                summary=f"Failed to read file: {str(e)}",
+                strengths=[],
+                weaknesses=["File could not be parsed"],
+                verdict="ERROR"
+            ))
+            continue # Skip AI processing for this file
             
         # Call Groq AI
         try:
@@ -133,15 +146,54 @@ async def analyze_cvs(
             results.append(AIScreenerResult(**analysis))
             
         except Exception as e:
-            print(f"AI Error: {str(e)}")
+            print(f"AI Error for {filename}: {str(e)}")
             results.append(AIScreenerResult(
                 candidate_name=filename,
                 score=0,
-                summary="Failed to analyze this CV due to AI error.",
+                summary=f"Failed to analyze this CV: {str(e)}",
                 strengths=[],
                 weaknesses=["Error processing file"],
                 verdict="REJECT"
             ))
             
     return AIScreenerResponse(results=results)
+
+def analysis_helper(doc) -> dict:
+    return {
+        "id": str(doc["_id"]),
+        "candidate_name": doc.get("candidate_name"),
+        "score": doc.get("score"),
+        "summary": doc.get("summary"),
+        "strengths": doc.get("strengths", []),
+        "weaknesses": doc.get("weaknesses", []),
+        "verdict": doc.get("verdict"),
+        "hr_id": doc.get("hr_id"),
+        "job_requirements": doc.get("job_requirements"),
+        "filename": doc.get("filename"),
+        "created_at": doc.get("created_at").isoformat() if doc.get("created_at") else None
+    }
+
+@router.get("/recent")
+async def get_recent_analyses(current_hr: dict = Depends(get_current_hr_user)):
+    cursor = ai_analysis_collection.find({"hr_id": current_hr["id"]}).sort("created_at", -1)
+    docs = await cursor.to_list(length=100)
+    return [analysis_helper(d) for d in docs]
+
+class DeleteAnalysesRequest(BaseModel):
+    ids: List[str]
+
+@router.post("/delete")
+async def delete_analyses(
+    req: DeleteAnalysesRequest,
+    current_hr: dict = Depends(get_current_hr_user)
+):
+    try:
+        object_ids = [ObjectId(i) for i in req.ids]
+        result = await ai_analysis_collection.delete_many({
+            "_id": {"$in": object_ids},
+            "hr_id": current_hr["id"]
+        })
+        return {"message": f"Successfully deleted {result.deleted_count} record(s)"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid payload or ID: {str(e)}")
 

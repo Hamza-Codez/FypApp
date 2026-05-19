@@ -71,9 +71,9 @@ export const deleteAllEmployees = createAsyncThunk('workspace/deleteAllEmployees
     }
 });
 
-export const updateTaskStatus = createAsyncThunk('workspace/updateTaskStatus', async ({ taskId, status, report_link }, { rejectWithValue, dispatch }) => {
+export const updateTaskStatus = createAsyncThunk('workspace/updateTaskStatus', async ({ taskId, status, report_link, comment }, { rejectWithValue, dispatch }) => {
     try {
-        const response = await api.put(`/projects/tasks/${taskId}/status`, { status, report_link });
+        const response = await api.put(`/projects/tasks/${taskId}/status`, { status, report_link, comment });
         dispatch(fetchProjects());
         dispatch(fetchMyTasks());
         dispatch(fetchTaskReports());
@@ -112,6 +112,18 @@ export const createTask = createAsyncThunk('workspace/createTask', async (taskDa
     }
 });
 
+export const deleteTask = createAsyncThunk('workspace/deleteTask', async (taskId, { rejectWithValue, dispatch }) => {
+    try {
+        const response = await api.delete(`/projects/tasks/${taskId}`);
+        dispatch(fetchProjects());
+        dispatch(fetchMyTasks());
+        dispatch(fetchTaskReports());
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
 export const updateProject = createAsyncThunk('workspace/updateProject', async ({ id, ...updateData }, { rejectWithValue, dispatch }) => {
     try {
         const response = await api.put(`/projects/${id}`, updateData);
@@ -144,6 +156,20 @@ const initialState = {
 };
 
 
+const DEFAULT_ORG_LOGO = "https://res.cloudinary.com/dzt66v9tw/image/upload/v1741164906/officeos_logo_u8f1f1.png";
+
+const updateWorkspaceFromUser = (state, user) => {
+    if (user?.organization_name || user?.org_name) {
+        state.currentWorkspace = {
+            id: "1",
+            name: user.organization_name || user.org_name,
+            image_url: user.org_logo || user.logo_url || DEFAULT_ORG_LOGO,
+            membersCount: 0
+        };
+        state.workspaces = [state.currentWorkspace];
+    }
+};
+
 const workspaceSlice = createSlice({
     name: "workspace",
     initialState,
@@ -170,27 +196,10 @@ const workspaceSlice = createSlice({
                 state.taskReports = action.payload;
             })
             .addCase('auth/login/fulfilled', (state, action) => {
-
-                if (action.payload.user?.organization_name) {
-                    state.currentWorkspace = {
-                        id: "1",
-                        name: action.payload.user.organization_name,
-                        image_url: action.payload.user.org_logo || "https://via.placeholder.com/150",
-                        membersCount: 0
-                    };
-                    state.workspaces = [state.currentWorkspace];
-                }
+                updateWorkspaceFromUser(state, action.payload.user);
             })
             .addCase('auth/fetchMe/fulfilled', (state, action) => {
-                if (action.payload.organization_name) {
-                    state.currentWorkspace = {
-                        id: "1",
-                        name: action.payload.organization_name,
-                        image_url: action.payload.org_logo || "https://via.placeholder.com/150",
-                        membersCount: 0
-                    };
-                    state.workspaces = [state.currentWorkspace];
-                }
+                updateWorkspaceFromUser(state, action.payload);
             });
     }
 });

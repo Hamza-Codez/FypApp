@@ -43,7 +43,7 @@ function MyTasksSidebar() {
 
     return (
         <div className="mt-6 px-3">
-            <div onClick={toggleMyTasks} className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800" >
+            <div onClick={toggleMyTasks} className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-450" >
                 <div className="flex items-center gap-2">
                     <CheckSquareIcon className="w-4 h-4 text-gray-500 dark:text-zinc-400" />
                     <h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300">My Tasks</h3>

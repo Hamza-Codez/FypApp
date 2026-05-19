@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { toggleTheme } from '../features/themeSlice'
 import { logout } from '../features/auth/authSlice'
 import { assets } from '../assets/assets'
+import NotificationBell from './NotificationBell'
 
 const Navbar = ({ setIsSidebarOpen }) => {
 
@@ -33,7 +34,7 @@ const Navbar = ({ setIsSidebarOpen }) => {
                         <input
                             type="text"
                             placeholder="Search projects, tasks..."
-                            className="pl-8 pr-4 py-2 w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition"
+                            className="pl-8 pr-4 py-2 w-full bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition"
                         />
                     </div>
                 </div>
@@ -41,8 +42,10 @@ const Navbar = ({ setIsSidebarOpen }) => {
                 {/* Right section */}
                 <div className="flex items-center gap-4">
 
+                    <NotificationBell />
+
                     {/* Theme Toggle */}
-                    <button onClick={() => dispatch(toggleTheme())} className="size-8 flex items-center justify-center bg-white dark:bg-zinc-800 shadow rounded-lg transition hover:scale-105 active:scale-95">
+                    <button onClick={() => dispatch(toggleTheme())} className="size-8 flex items-center justify-center bg-white dark:bg-zinc-800 shadow rounded-md transition hover:scale-105 active:scale-95">
                         {
                             theme === "light"
                                 ? (<MoonIcon className="size-4 text-gray-800 dark:text-gray-200" />)

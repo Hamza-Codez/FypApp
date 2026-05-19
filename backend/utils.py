@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
@@ -31,12 +31,13 @@ def get_password_hash(password):
         password = password[:50]
     return pwd_context.hash(password)
 
+
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -53,8 +54,7 @@ def upload_image(file_content, folder="office_management"):
     try:
         res = cloudinary.uploader.upload(file_content, folder=folder)
         return res.get("secure_url")
-    except Exception as e:
-        print("Cloudinary upload error:", e)
+    except Exception:
         return None
 
 # Email configuration
@@ -232,6 +232,6 @@ async def send_welcome_email(email: EmailStr, password: str, first_name: str, ro
     try:
         fm = FastMail(conf)
         await fm.send_message(message)
-    except Exception as e:
-        print("Error sending email:", e)
+    except Exception:
+        pass
 

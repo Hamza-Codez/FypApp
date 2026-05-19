@@ -20,6 +20,8 @@ api.interceptors.response.use((response) => {
     return response;
 }, (error) => {
     if (error.response && error.response.status === 401) {
+        console.warn(`[Session] Unauthorized access to ${error.config.url}. Clearing session and redirecting to login.`);
+        
         // Clear storage and state if unauthorized
         localStorage.removeItem('token');
         localStorage.removeItem('role');
@@ -27,7 +29,9 @@ api.interceptors.response.use((response) => {
         sessionStorage.removeItem('role');
         
         // Only redirect if we're not already on the landing or login page
-        if (!window.location.pathname.startsWith('/login') && window.location.pathname !== '/') {
+        // Use a flag to prevent multiple rapid redirects
+        if (!window.location.pathname.includes('/login') && window.location.pathname !== '/' && !window.__is_redirecting) {
+            window.__is_redirecting = true;
             window.location.href = '/login?expired=true';
         }
     }
