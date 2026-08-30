@@ -12,7 +12,7 @@ const NavItem = ({ to, icon: Icon, label, isSidebarCollapsed, setIsSidebarOpen }
         to={to}
         end={to === "/dashboard"}
         className={({ isActive }) =>
-            `flex items-center group transition-all duration-300 font-medium text-sm rounded-lg overflow-hidden ${
+            `flex items-center group transition-all duration-300 font-medium text-sm rounded-md overflow-hidden ${
                 isSidebarCollapsed ? 'px-2 justify-center py-2.5 mx-2' : 'px-4 justify-between py-2.5 mx-0'
             } ${
                 isActive
@@ -92,7 +92,7 @@ const Layout = () => {
                 <div className={`flex-1 space-y-2 overflow-y-auto transition-all duration-300 ${isSidebarCollapsed ? 'px-0' : 'px-4'}`}>
                     {/* Organization Banner */}
                     <div className={`mb-6 pt-2 transition-all duration-300 ${isSidebarCollapsed ? 'px-0' : 'px-3'}`}>
-                        <div className={`flex items-center gap-3 p-2 rounded-lg ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+                        <div className={`flex items-center gap-3 p-2 rounded-md ${isSidebarCollapsed ? 'justify-center' : ''}`}>
                             {user?.org_logo || user?.logo_url ? (
                                 <img 
                                     src={user.org_logo || user.logo_url} 
@@ -155,16 +155,16 @@ const Layout = () => {
                     </button>
                 </div>
                 <div className="px-4 mb-4">
-                    <div className="flex items-center gap-4 p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl">
+                    <div className="flex items-center gap-4 p-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md">
                         {user?.org_logo || user?.logo_url ? (
                             <img 
                                 src={user.org_logo || user.logo_url} 
                                 alt="Org Logo" 
-                                className="size-10 rounded-lg object-cover bg-white ring-1 ring-zinc-200 dark:ring-zinc-800 shadow-sm"
+                                className="size-10 rounded-md object-cover bg-white ring-1 ring-zinc-200 dark:ring-zinc-800 shadow-sm"
                                 onError={(e) => e.target.style.display = 'none'}
                             />
                         ) : (
-                            <div className="size-10 rounded-lg bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                            <div className="size-10 rounded-md bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
                                 <span className="text-white font-black text-xl uppercase tracking-tighter">
                                     {(user?.organization_name || user?.org_name || 'W').charAt(0)}
                                 </span>
@@ -191,14 +191,14 @@ const Layout = () => {
             <main className={`flex-1 flex flex-col min-h-screen transition-all duration-500 ease-in-out ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}>
                 {/* Navbar Desktop/Mobile Top */}
                 <header className="sticky top-0 z-40 h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4 lg:px-8 flex items-center justify-between">
-                    <button className="lg:hidden p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900" onClick={() => setIsSidebarOpen(true)}>
+                    <button className="lg:hidden p-2 rounded-md bg-zinc-50 dark:bg-zinc-900" onClick={() => setIsSidebarOpen(true)}>
                         <Menu className="size-5 dark:text-white" />
                     </button>
 
                     <div className="flex items-center gap-4 flex-1 justify-center md:justify-start">
                         <NavLink 
                             to="/" 
-                            className="p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 group relative"
+                            className="p-2 rounded-md bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 group relative"
                             title="Go to Home"
                         >
                             <Home className="size-5 group-hover:scale-110 transition-transform duration-300" />
@@ -221,7 +221,7 @@ const Layout = () => {
                         <div className="relative" ref={dropdownRef}>
                             <div 
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                className={`flex items-center gap-2 p-1.5 rounded-lg transition-all cursor-pointer ${isProfileOpen ? 'bg-zinc-100 dark:bg-zinc-900 ring-1 ring-zinc-200 dark:ring-zinc-800' : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/50'}`}
+                                className={`flex items-center gap-2 p-1.5 rounded-md transition-all cursor-pointer ${isProfileOpen ? 'bg-zinc-100 dark:bg-zinc-900 ring-1 ring-zinc-200 dark:ring-zinc-800' : 'hover:bg-zinc-50 dark:hover:bg-zinc-900/50'}`}
                             >
                                 <div className="text-right hidden sm:block">
                                     <p className="text-sm font-semibold dark:text-white line-clamp-1 leading-tight">{user?.first_name || 'Workspace'}</p>
@@ -240,7 +240,7 @@ const Layout = () => {
 
                             {/* Dropdown Popover */}
                             {isProfileOpen && (
-                                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50">
+                                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 rounded-md shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50">
                                     <div className="p-5 bg-gradient-to-br from-zinc-50 to-white dark:from-zinc-900/50 dark:to-zinc-950 border-b border-zinc-100 dark:border-zinc-800/50">
                                         <div className="flex items-center gap-4">
                                             <img 
@@ -269,7 +269,7 @@ const Layout = () => {
                                     <div className="p-2 space-y-1">
                                         <button 
                                             onClick={() => { navigate('/dashboard/profile'); setIsProfileOpen(false); }}
-                                            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group"
+                                            className="w-full flex items-center justify-between px-4 py-2.5 rounded-md text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <UserCircle className="size-4 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" />
@@ -280,7 +280,7 @@ const Layout = () => {
                                         
                                         <button 
                                             onClick={handleLogout}
-                                            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all group"
+                                            className="w-full flex items-center justify-between px-4 py-2.5 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all group"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <LogOut className="size-4" />

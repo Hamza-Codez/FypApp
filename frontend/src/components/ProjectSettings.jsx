@@ -102,9 +102,20 @@ export default function ProjectSettings({ project, tasks = [] }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+
+        // Clean up optional fields so they send null instead of empty strings,
+        // which prevents Pydantic validation errors.
+        const submitData = {
+            ...formData,
+            start_date: formData.start_date || null,
+            end_date: formData.end_date || null,
+            team_lead_id: formData.team_lead_id || null,
+            description: formData.description || null,
+        };
+
         const resultAction = await dispatch(updateProject({
             id: project.id,
-            ...formData,
+            ...submitData,
         }));
         setIsSubmitting(false);
 
@@ -143,7 +154,7 @@ export default function ProjectSettings({ project, tasks = [] }) {
 
     const cardClasses = "bg-[#F7F7F5] dark:bg-zinc-900/50 border border-[#E5E5E5] dark:border-zinc-800/50 p-6 rounded-md shadow-sm transition-all duration-300 hover:border-zinc-400 dark:hover:border-zinc-700";
     const labelClasses = "text-[7.5px] font-black uppercase text-zinc-450 dark:text-zinc-500 tracking-[0.2em] block mb-1.5 font-sans leading-none";
-    const inputClasses = "w-full rounded-md bg-white dark:bg-zinc-950/20 border border-[#E5E5E5] dark:border-zinc-800 px-3.5 py-2.5 text-zinc-900 dark:text-zinc-200 text-xs font-sans focus:outline-none focus:border-zinc-950 dark:focus:border-zinc-100 focus:ring-0 transition-all placeholder:text-zinc-450";
+    const inputClasses = "w-full rounded-md bg-white dark:bg-zinc-950 border border-[#E5E5E5] dark:border-zinc-800 px-3.5 py-2.5 text-zinc-900 dark:text-zinc-200 text-xs font-sans focus:outline-none focus:border-zinc-950 dark:focus:border-zinc-100 focus:ring-0 transition-all placeholder:text-zinc-450";
 
     return (
         <div className="grid lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -176,20 +187,22 @@ export default function ProjectSettings({ project, tasks = [] }) {
                             <div className="space-y-1">
                                 <label className={labelClasses}>Current Status</label>
                                 <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className={inputClasses} >
-                                    <option value="PLANNING">Planning</option>
-                                    <option value="ACTIVE">Active</option>
-                                    <option value="ON_HOLD">On Hold</option>
-                                    <option value="COMPLETED">Completed</option>
-                                    <option value="CANCELLED">Cancelled</option>
+                                    <option value="PLANNING" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">Planning</option>
+                                    <option value="ACTIVE" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">Active</option>
+                                    <option value="ON_HOLD" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">On Hold</option>
+                                    <option value="COMPLETED" disabled={tasks.length > 0 && doneTasks < totalTasks} className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">
+                                        {tasks.length > 0 && doneTasks < totalTasks ? "Completed (Pending Tasks)" : "Completed"}
+                                    </option>
+                                    <option value="CANCELLED" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">Cancelled</option>
                                 </select>
                             </div>
 
                             <div className="space-y-1">
                                 <label className={labelClasses}>Resource Priority</label>
                                 <select value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })} className={inputClasses} >
-                                    <option value="LOW">Low</option>
-                                    <option value="MEDIUM">Medium</option>
-                                    <option value="HIGH">High</option>
+                                    <option value="LOW" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">Low</option>
+                                    <option value="MEDIUM" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">Medium</option>
+                                    <option value="HIGH" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">High</option>
                                 </select>
                             </div>
                         </div>
@@ -201,13 +214,12 @@ export default function ProjectSettings({ project, tasks = [] }) {
                                 value={formData.team_lead_id}
                                 onChange={(e) => setFormData({ ...formData, team_lead_id: e.target.value })}
                                 className={inputClasses}
-                                required
                             >
-                                <option value="" disabled>Select Team Lead...</option>
+                                <option value="" className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">None (Self-Managing Team)</option>
                                 {formData.assigned_to?.map(id => {
                                     const emp = employees.find(e => e.id === id);
                                     return (
-                                        <option key={id} value={id}>
+                                        <option key={id} value={id} className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-200">
                                             {emp ? `${emp.first_name} ${emp.last_name}` : "Unknown User"}
                                         </option>
                                     );
@@ -269,14 +281,15 @@ export default function ProjectSettings({ project, tasks = [] }) {
                                 <button
                                     type="button"
                                     onClick={() => setShowAddMemberDropdown(!showAddMemberDropdown)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded bg-zinc-950 dark:bg-white text-white dark:text-zinc-955 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+                                    
                                 >
                                     <Plus className="size-3 stroke-[3]" />
                                     {showAddMemberDropdown ? "Close Add Panel" : "Add Team Members"}
                                 </button>
 
                                 {showAddMemberDropdown && (
-                                    <div className="border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-955 overflow-hidden shadow-sm animate-in fade-in duration-200">
+                                    <div className="border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-950 overflow-hidden shadow-sm animate-in fade-in duration-200">
                                         <div className="p-2 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50 gap-2">
                                             <div className="flex items-center gap-1.5 text-zinc-400 flex-1 min-w-0">
                                                 <Users className="size-3.5 shrink-0" />

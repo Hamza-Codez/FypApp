@@ -30,7 +30,7 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel, type = 'da
             />
             
             {/* Modal */}
-            <div className={`relative w-full max-w-md bg-white dark:bg-zinc-950 border ${theme.border} rounded-xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200`}>
+            <div className={`relative w-full max-w-md bg-white dark:bg-zinc-950 border ${theme.border} rounded-md shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-200`}>
                 <button 
                     onClick={onCancel}
                     className="absolute top-4 right-4 p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 transition-colors"
@@ -39,7 +39,7 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel, type = 'da
                 </button>
 
                 <div className="flex flex-col items-center text-center">
-                    <div className={`p-3 rounded-lg ${theme.iconBg} mb-4`}>
+                    <div className={`p-3 rounded-md ${theme.iconBg} mb-4`}>
                         {theme.icon}
                     </div>
                     
@@ -54,13 +54,13 @@ const ConfirmDialog = ({ isOpen, title, message, onConfirm, onCancel, type = 'da
                     <div className="flex items-center gap-3 w-full">
                         <button
                             onClick={onCancel}
-                            className="flex-1 px-4 py-2 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg transition-all uppercase tracking-widest"
+                            className="flex-1 px-4 py-2 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-md transition-all uppercase tracking-widest"
                         >
                             {cancelText}
                         </button>
                         <button
                             onClick={onConfirm}
-                            className={`flex-1 px-4 py-2 text-[10px] font-bold text-white ${theme.button} shadow-lg rounded-lg transition-all active:scale-[0.98] uppercase tracking-widest`}
+                            className={`flex-1 px-4 py-2 text-[10px] font-bold text-white ${theme.button} shadow-lg rounded-md transition-all active:scale-[0.98] uppercase tracking-widest`}
                         >
                             {confirmText}
                         </button>

@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotifications, markAsRead, markAllAsRead } from '../features/notificationSlice';
-import { Bell, Check, Trash2, Clock, Inbox } from 'lucide-react';
+import { Bell, Check, Clock, Inbox } from 'lucide-react';
 
 const Notifications = () => {
     const dispatch = useDispatch();
@@ -70,7 +70,12 @@ const Notifications = () => {
                                         <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 flex-shrink-0">
                                             <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-900/50 px-1.5 py-0.5 rounded">
                                                 <Clock size={10} />
-                                                {new Date(notification.created_at).toLocaleDateString()}
+                                                {(() => {
+                                                    const dateStr = notification.created_at;
+                                                    const isoString = (typeof dateStr === "string" && !dateStr.endsWith("Z") && !dateStr.includes("+")) ? `${dateStr}Z` : dateStr;
+                                                    const dateObj = new Date(isoString);
+                                                    return `${dateObj.toLocaleDateString()} at ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                                })()}
                                             </div>
                                             {!notification.is_read && (
                                                 <button 

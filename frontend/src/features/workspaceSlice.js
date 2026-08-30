@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 
-export const fetchProjects = createAsyncThunk('workspace/fetchProjects', async (_, { rejectWithValue }) => {
+export const fetchProjects = createAsyncThunk('workspace/fetchProjects', async ({ page = 1, limit = 50 } = {}, { rejectWithValue }) => {
     try {
-        const response = await api.get('/projects/');
+        const response = await api.get(`/projects/?page=${page}&limit=${limit}`);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data);
@@ -51,9 +51,22 @@ export const uploadEmployeesCSV = createAsyncThunk('workspace/uploadEmployeesCSV
     }
 });
 
-export const deleteEmployee = createAsyncThunk('workspace/deleteEmployee', async (employeeId, { rejectWithValue, dispatch }) => {
+export const deleteEmployee = createAsyncThunk('workspace/deleteEmployee', async (arg, { rejectWithValue, dispatch }) => {
     try {
-        const response = await api.delete(`/users/employee/${employeeId}`);
+        let employeeId = "";
+        let replacementId = null;
+        if (typeof arg === "object" && arg !== null) {
+            employeeId = arg.employeeId;
+            replacementId = arg.replacementId;
+        } else {
+            employeeId = arg;
+        }
+        
+        const url = replacementId 
+            ? `/users/employee/${employeeId}?replacement_id=${replacementId}` 
+            : `/users/employee/${employeeId}`;
+            
+        const response = await api.delete(url);
         dispatch(fetchEmployees());
         return response.data;
     } catch (error) {
@@ -145,14 +158,37 @@ export const deleteProject = createAsyncThunk('workspace/deleteProject', async (
     }
 });
 
+export const fetchWorkloadSettings = createAsyncThunk('workspace/fetchWorkloadSettings', async (_, { rejectWithValue }) => {
+    try {
+        const response = await api.get('/users/workload-settings');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
+export const updateWorkloadSettings = createAsyncThunk('workspace/updateWorkloadSettings', async (settingsData, { rejectWithValue, dispatch }) => {
+    try {
+        const response = await api.put('/users/workload-settings', settingsData);
+        dispatch(fetchWorkloadSettings());
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
 const initialState = {
     projects: [],
+    projectsTotal: 0,
+    projectsPage: 1,
+    projectsPages: 1,
     employees: [],
     myTasks: [],
     taskReports: [],
     workspaces: [],
     currentWorkspace: null,
     loading: false,
+    workloadSettings: { max_projects_lead: 2, max_projects_member: 5 },
 };
 
 
@@ -184,7 +220,14 @@ const workspaceSlice = createSlice({
             .addCase(fetchProjects.pending, (state) => { state.loading = true; })
             .addCase(fetchProjects.fulfilled, (state, action) => {
                 state.loading = false;
-                state.projects = action.payload;
+                if (action.payload && action.payload.data !== undefined) {
+                    state.projects = action.payload.data;
+                    state.projectsTotal = action.payload.total;
+                    state.projectsPage = action.payload.page;
+                    state.projectsPages = action.payload.pages;
+                } else {
+                    state.projects = action.payload;
+                }
             })
             .addCase(fetchEmployees.fulfilled, (state, action) => {
                 state.employees = action.payload;
@@ -194,6 +237,9 @@ const workspaceSlice = createSlice({
             })
             .addCase(fetchTaskReports.fulfilled, (state, action) => {
                 state.taskReports = action.payload;
+            })
+            .addCase(fetchWorkloadSettings.fulfilled, (state, action) => {
+                state.workloadSettings = action.payload;
             })
             .addCase('auth/login/fulfilled', (state, action) => {
                 updateWorkspaceFromUser(state, action.payload.user);

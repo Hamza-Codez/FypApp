@@ -22,7 +22,7 @@ export default function Projects() {
         priority: "ALL",
     });
 
-    const selectClasses = "px-3 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm bg-white dark:bg-zinc-900 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500";
+    const selectClasses = "px-3 py-2 rounded-md border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm bg-white dark:bg-zinc-900 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
     // Filter projects that the current user is assigned to or leads (restricted for non-HR employees)
     const visibleProjects = useMemo(() => {
@@ -78,7 +78,7 @@ export default function Projects() {
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-400 w-4 h-4" />
-                    <input onChange={(e) => setSearchTerm(e.target.value)} value={searchTerm} className="w-full pl-10 text-sm pr-4 py-2 rounded-lg border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 focus:border-emerald-500 outline-none" placeholder="Search projects..." />
+                    <input onChange={(e) => setSearchTerm(e.target.value)} value={searchTerm} className="w-full pl-10 text-sm pr-4 py-2 rounded-md border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-400 focus:border-emerald-500 outline-none" placeholder="Search projects..." />
                 </div>
                 {/* filter selects - Only for HR */}
                 {user?.role?.toUpperCase() === 'HR' && (

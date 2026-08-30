@@ -25,10 +25,34 @@ projects_collection = database.get_collection("projects")
 tasks_collection = database.get_collection("tasks")
 ai_analysis_collection = database.get_collection("ai_analysis")
 notifications_collection = database.get_collection("notifications")
+audit_log_collection = database.get_collection("audit_logs")
+settings_collection = database.get_collection("settings")
+
+async def log_audit(user_id: str, action: str, entity_type: str, entity_id: str, details: dict = None):
+    await audit_log_collection.insert_one({
+        "user_id": str(user_id),
+        "action": action,
+        "entity_type": entity_type,
+        "entity_id": str(entity_id),
+        "details": details or {},
+        "timestamp": datetime.utcnow()
+    })
 
 
 # Helper map to transform MongoDB _id to string
 def user_helper(user) -> dict:
+    role_val = user.get("role", "EMPLOYEE")
+    designation_val = user.get("designation")
+    
+    # If the stored role is not one of the strict 
+    # system roles (HR, EMPLOYEE),
+    # treat it as the designation and 
+    # fallback the system role to EMPLOYEE.
+    if role_val not in ["HR", "EMPLOYEE"]:
+        if not designation_val:
+            designation_val = role_val
+        role_val = "EMPLOYEE"
+
     return {
         "id": str(user["_id"]),
         "first_name": user.get("first_name"),
@@ -44,9 +68,12 @@ def user_helper(user) -> dict:
         "cultural_practices": user.get("cultural_practices"),
         "profile_image": user.get("profile_image"),
         "org_logo": user.get("org_logo"),
-        "role": user.get("role"),
+        "role": role_val,
+        "designation": designation_val,
+        "status": user.get("status", "ACTIVE"),
         "created_by": user.get("created_by"),
         "must_change_password": user.get("must_change_password", False),
+        "onboard_date": user.get("onboard_date"),
     }
 
 def project_helper(project) -> dict:
@@ -87,17 +114,19 @@ def notification_helper(notification) -> dict:
         "title": notification.get("title"),
         "message": notification.get("message"),
         "type": notification.get("type", "info"),
+        "priority": notification.get("priority", "LOW"),
         "is_read": notification.get("is_read", False),
         "created_at": notification.get("created_at"),
         "link": notification.get("link")
     }
 
-async def create_notification(user_id: str, title: str, message: str, type: str = "info", link: str = None):
+async def create_notification(user_id: str, title: str, message: str, type: str = "info", link: str = None, priority: str = "LOW"):
     notification = {
         "user_id": str(user_id),
         "title": title,
         "message": message,
         "type": type,
+        "priority": priority,
         "is_read": False,
         "created_at": datetime.utcnow(),
         "link": link
@@ -105,14 +134,14 @@ async def create_notification(user_id: str, title: str, message: str, type: str 
     # 1. Insert new notification
     await notifications_collection.insert_one(notification)
     
-    # 2. Enforce limit (Keep only latest 5)
+    # 2. Enforce limit (Keep only latest 50)
     # Find all notifications for this user sorted by date descending
     cursor = notifications_collection.find({"user_id": str(user_id)}).sort("created_at", -1)
     user_notifications = await cursor.to_list(length=None)
     
-    if len(user_notifications) > 5:
-        # Identify IDs to delete (everything after the first 5)
-        ids_to_delete = [n["_id"] for n in user_notifications[5:]]
+    if len(user_notifications) > 50:
+        # Identify IDs to delete (everything after the first 50)
+        ids_to_delete = [n["_id"] for n in user_notifications[50:]]
         await notifications_collection.delete_many({"_id": {"$in": ids_to_delete}})
 
 # --- Database Indexing for Optimization ---

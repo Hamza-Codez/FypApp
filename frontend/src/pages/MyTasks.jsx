@@ -81,41 +81,47 @@ export default function MyTasks() {
                 confirmText="Share Now"
             />
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="flex items-start gap-4">
-                    <button 
-                        onClick={() => navigate(-1)}
-                        className="p-2 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm active:scale-90"
-                    >
-                        <ArrowLeft className="size-5 text-zinc-600 dark:text-zinc-400" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-black uppercase tracking-tight text-zinc-900 dark:text-white">My Assignments</h1>
-                        <p className="text-xs font-medium text-zinc-500 uppercase tracking-widest mt-1">Manage your active tasks and submit reports</p>
-                    </div>
+            <div className="flex items-center gap-3">
+                <button 
+                    onClick={() => navigate(-1)}
+                    className="p-1.5 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm active:scale-95"
+                >
+                    <ArrowLeft className="size-4 text-zinc-650 dark:text-zinc-400" />
+                </button>
+                <div>
+                    <h1 className="text-base sm:text-lg font-black uppercase tracking-wider text-zinc-900 dark:text-white">
+                        My Assignments
+                    </h1>
+                    <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
+                        Manage your active tasks and submit reports
+                    </p>
                 </div>
+            </div>
 
-                <div className="flex gap-3">
-                    {/* Project filter dropdown */}
-                    <div className="relative group">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
-                        <select 
-                            value={selectedProjectId} 
-                            onChange={(e) => setSelectedProjectId(e.target.value)} 
-                            className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 py-2.5 pl-10 pr-6 rounded-lg text-[10px] font-black uppercase tracking-[0.1em] focus:ring-2 focus:ring-emerald-500/20 appearance-none cursor-pointer text-zinc-900 dark:text-zinc-150"
-                        >
-                            <option value="">All Projects</option>
-                            {activeProjects.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
+            {/* Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-end bg-zinc-50/50 dark:bg-zinc-900/20 p-2.5 rounded-md border border-zinc-200/80 dark:border-zinc-800/80">
+                <div className="relative group w-full sm:w-auto">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
+                    <select 
+                        value={selectedProjectId} 
+                        onChange={(e) => setSelectedProjectId(e.target.value)} 
+                        className="w-full sm:w-64 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/80 py-1.5 pl-9 pr-8 rounded-md text-[9px] font-black uppercase tracking-[0.08em] focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500/40 outline-none appearance-none cursor-pointer text-zinc-900 dark:text-zinc-100 shadow-sm transition-all"
+                    >
+                        <option value="">All Projects</option>
+                        {activeProjects.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                    </select>
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 dark:text-zinc-500">
+                        <svg className="size-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
                     </div>
                 </div>
             </div>
 
-
             {filteredTasks.length === 0 ? (
-                <div className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-12 text-center">
+                <div className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-md p-12 text-center">
                     <p className="text-zinc-500 font-medium">No tasks found matching your filter selection.</p>
                 </div>
             ) : (
@@ -123,27 +129,34 @@ export default function MyTasks() {
                     {filteredTasks.map((task) => {
                         const proj = projects.find(p => p.id === task.project_id || p.id == task.project_id);
                         return (
-                            <div key={task.id} className="bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col h-full border-b-4 border-b-emerald-600">
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${task.priority === 'HIGH' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                                        {task.priority}
-                                    </span>
-                                    <span className="text-[10px] font-bold text-zinc-400 uppercase">{task.status.replace('_', ' ')}</span>
+                            <div key={task.id} className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-850 rounded-md p-5 shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all flex flex-col h-full border-t-4 border-t-emerald-600">
+                                <div className="flex justify-between items-start mb-3.5">
+                                    <div className="flex gap-1.5">
+                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${task.priority === 'HIGH' ? 'bg-red-100 text-red-650 dark:bg-red-950/40 dark:text-red-400' : 'bg-emerald-100 text-emerald-650 dark:bg-emerald-950/40 dark:text-emerald-400'}`}>
+                                            {task.priority}
+                                        </span>
+                                        {task.due_date && new Date(task.due_date) < new Date(new Date().setHours(0,0,0,0)) && task.status !== 'COMPLETED' && (
+                                            <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-650 dark:bg-red-950/40 dark:text-red-400 text-[8px] font-black uppercase tracking-wider">
+                                                Overdue
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{task.status.replace('_', ' ')}</span>
                                 </div>
                                 
                                 {proj && (
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1.5 flex items-center gap-1">
+                                    <div className="text-[8px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-455 mb-1 flex items-center gap-1">
                                         <Briefcase className="size-2.5" />
                                         {proj.name}
                                     </div>
                                 )}
 
-                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white mb-2 uppercase tracking-tight">{task.title}</h3>
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-3 mb-6 flex-grow">{task.description}</p>
+                                <h3 className="text-xs font-bold text-zinc-900 dark:text-white mb-1.5 uppercase tracking-wide leading-snug">{task.title}</h3>
+                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-3 mb-5 flex-grow leading-relaxed">{task.description}</p>
                                 
-                                <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                    <div className="flex items-center justify-between text-[10px]">
-                                        <div className="flex items-center gap-1.5 text-zinc-400 font-bold uppercase tracking-widest">
+                                <div className="space-y-3 pt-3.5 border-t border-zinc-100 dark:border-zinc-800/80">
+                                    <div className="flex items-center justify-between text-[9px]">
+                                        <div className="flex items-center gap-1.5 text-zinc-400 font-bold uppercase tracking-wider">
                                             <Clock className="size-3" />
                                             Deadline
                                         </div>
@@ -153,21 +166,21 @@ export default function MyTasks() {
                                     </div>
 
                                     {task.report_link && (
-                                        <div className="flex items-center justify-between text-[10px]">
-                                            <div className="flex items-center gap-1.5 text-emerald-500 font-bold uppercase tracking-widest">
+                                        <div className="flex items-center justify-between text-[9px]">
+                                            <div className="flex items-center gap-1.5 text-emerald-500 font-bold uppercase tracking-wider">
                                                 <ExternalLink className="size-3" />
                                                 Report Submitted
                                             </div>
                                         </div>
                                     )}
 
-                                    <div className="pt-2">
+                                    <div className="pt-1.5">
                                         <button 
                                             disabled={task.status === 'COMPLETED'}
                                             onClick={() => handleShareReportClick(task.id, task.report_link)}
-                                            className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2"
+                                            className="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[9px] font-black uppercase tracking-wider transition-all disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-1.5"
                                         >
-                                            {task.report_link ? <><MessageCircle className="size-3.5" /> Update Report Link</> : <><FilePlus className="size-3.5" /> Submit Report</>}
+                                            {task.report_link ? <><MessageCircle className="size-3" /> Update Report Link</> : <><FilePlus className="size-3" /> Submit Report</>}
                                         </button>
                                     </div>
                                 </div>

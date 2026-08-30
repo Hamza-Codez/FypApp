@@ -16,7 +16,7 @@ const InputField = ({ label, icon: Icon, ...props }) => (
             </div>
             <input 
                 {...props}
-                className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-14 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none text-[#111111] dark:text-white"
+                className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-zinc-800 rounded-md py-3 pl-14 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none text-[#111111] dark:text-white"
             />
         </div>
     </div>
@@ -52,13 +52,13 @@ const Login = () => {
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#111_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:40px_40px]"></div>
             </div>
 
-            <div className="w-full max-w-[1200px] h-[min(700px,85vh)] bg-white dark:bg-[#0F0F0E] rounded-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-zinc-200 dark:border-zinc-800 flex overflow-hidden relative z-10 transition-all">
+            <div className="w-full max-w-[1200px] h-[min(700px,85vh)] bg-white dark:bg-[#0F0F0E] rounded-md shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-zinc-200 dark:border-zinc-800 flex overflow-hidden relative z-10 transition-all">
                 
                 {/* Left Column: Mission Briefing Sidebar */}
                 <div className="w-[320px] bg-zinc-50 dark:bg-zinc-900/50 border-r border-zinc-200 dark:border-zinc-800 flex flex-col shrink-0">
                     <div className="p-8 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50">
                         <Link to="/" className="flex items-center gap-3 group">
-                            <div className="size-10 bg-[#111111] dark:bg-white rounded-lg flex items-center justify-center transition-transform shadow-lg shadow-black/10">
+                            <div className="size-10 bg-[#111111] dark:bg-white rounded-md flex items-center justify-center transition-transform shadow-lg shadow-black/10">
                                 <LayoutGrid className="size-5 text-white dark:text-black" />
                             </div>
                             <div>
@@ -77,7 +77,7 @@ const Login = () => {
                                 <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-[#111111] dark:text-white/40">Access Protocol</span>
                             </div>
                             
-                            <div className="bg-[#111111] dark:bg-black p-6 rounded-xl border border-white/5 shadow-2xl relative group mb-8">
+                            <div className="bg-[#111111] dark:bg-black p-6 rounded-md border border-white/5 shadow-2xl relative group mb-8">
                                 <h4 className="text-[12px] font-bold text-white mb-3 tracking-tight border-l-2 border-emerald-500 pl-4 uppercase tracking-wider">
                                     Security Brief
                                 </h4>
@@ -96,7 +96,7 @@ const Login = () => {
 
                     {/* Bottom Action Bar */}
                     <div className="p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100/50 dark:bg-black/20">
-                        <Link to="/signup-hr" className="flex items-center justify-between group p-3 rounded-lg bg-[#111111] dark:bg-white text-white dark:text-black transition-all hover:scale-[1.02] shadow-xl">
+                        <Link to="/signup-hr" className="flex items-center justify-between group p-3 rounded-md bg-[#111111] dark:bg-white text-white dark:text-black transition-all hover:scale-[1.02] shadow-xl">
                             <div className="flex items-center gap-3">
                                 <UserPlus className="size-4 opacity-70 group-hover:rotate-12 transition-transform" />
                                 <div className="flex flex-col">
@@ -173,7 +173,7 @@ const Login = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-emerald-600/90 text-white font-bold uppercase tracking-[0.2em] text-[10px] py-3 rounded-lg shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                    className="w-full bg-emerald-600/90 text-white font-bold uppercase tracking-[0.2em] text-[10px] py-3 rounded-md shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                                 >
                                     {loading ? <Loader2 className="size-4 animate-spin" /> : 'Login your account'}
                                     {!loading && <ArrowRight className="size-4" />}
@@ -181,7 +181,7 @@ const Login = () => {
                             </div>
                         </form>
 
-                        <div className="mt-12 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-lg flex items-center gap-4">
+                        <div className="mt-12 p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-md flex items-center gap-4">
                             <ShieldCheck className="size-5 text-emerald-500" />
                             <p className="text-[9px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-relaxed">
                                 Secure end-to-end encrypted session active. Unauthorized access attempts are logged.

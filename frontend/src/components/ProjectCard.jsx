@@ -25,20 +25,27 @@ const ProjectCard = ({ project }) => {
             to={`/dashboard/projectsDetail?id=${project.id}&tab=tasks`} 
             className="group block bg-white dark:bg-zinc-950 dark:bg-gradient-to-br dark:from-zinc-800/70 dark:to-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-4 rounded-md hover:border-zinc-400 dark:hover:border-zinc-600 transition-all duration-300"
         >
-            {/* Header Area - More Compact */}
-            <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                    <div className="size-8 rounded bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center text-zinc-500 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-700/50 group-hover:bg-zinc-900 dark:group-hover:bg-zinc-100 group-hover:text-white dark:group-hover:text-zinc-900 transition-colors">
+            {/* Header Area - Perfectly Responsive Flex Layout */}
+            <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="size-8 rounded bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-center text-zinc-500 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-700/50 group-hover:bg-zinc-900 dark:group-hover:bg-zinc-100 group-hover:text-white dark:group-hover:text-zinc-900 transition-colors shrink-0">
                         <Briefcase className="size-3.5" />
                     </div>
-                    <div>
-                        <h3 className="text-[13px] font-semibold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate max-w-[150px]">
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-[13px] font-semibold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-450 transition-colors truncate">
                             {project.name}
                         </h3>
                     </div>
                 </div>
-                <div className={`px-2 py-0.5 rounded border text-[9px] font-semibold uppercase tracking-tight ${statusStyles[project.status] || statusStyles.ACTIVE}`}>
-                    {project.status?.replace("_", " ") || 'Active'}
+                <div className="flex gap-1.5 shrink-0">
+                    {project.is_overdue && project.status !== 'COMPLETED' && (
+                        <div className="px-2 py-0.5 rounded border bg-red-100 border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-800/50 dark:text-red-400 text-[9px] font-semibold uppercase tracking-tight shadow-sm shrink-0">
+                            Overdue
+                        </div>
+                    )}
+                    <div className={`px-2 py-0.5 rounded border text-[9px] font-semibold uppercase tracking-tight shadow-sm shrink-0 ${statusStyles[project.status] || statusStyles.ACTIVE}`}>
+                        {project.status?.replace("_", " ") || 'Active'}
+                    </div>
                 </div>
             </div>
 
@@ -60,17 +67,8 @@ const ProjectCard = ({ project }) => {
 
             {/* Team Section */}
             <div className="mb-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/50">
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2">
                     <span className="text-[9px] font-semibold uppercase tracking-tight text-zinc-400">Team</span>
-                    {project.team_lead_id ? (
-                        <span className="text-[8px] font-black uppercase text-emerald-600 dark:text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded leading-none">
-                            Lead Assigned
-                        </span>
-                    ) : (
-                        <span className="text-[8px] font-black uppercase text-amber-600 dark:text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded leading-none">
-                            Lead Unassigned
-                        </span>
-                    )}
                 </div>
                 <div className="flex flex-wrap gap-1.5 min-h-[24px]">
                     {assignedMembers.length === 0 ? (

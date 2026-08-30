@@ -54,12 +54,11 @@ const TaskDetails = () => {
             
             setComments((prev) => [...prev, dummyComment]);
             setNewComment("");
-            toast.dismissAll();
+            toast.dismiss();
             toast.success("Comment added.");
         } catch (error) {
-            toast.dismissAll();
+            toast.dismiss();
             toast.error(error?.response?.data?.message || error.message);
-            console.error(error);
         }
     };
 
@@ -129,6 +128,11 @@ const TaskDetails = () => {
                     <div className="mb-3">
                         <h1 className="text-lg font-medium text-gray-900 dark:text-zinc-100">{task.title}</h1>
                         <div className="flex flex-wrap gap-2 mt-2">
+                            {task.due_date && new Date(task.due_date) < new Date(new Date().setHours(0,0,0,0)) && task.status !== 'COMPLETED' && (
+                                <span className="px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-widest">
+                                    Overdue
+                                </span>
+                            )}
                             <span className="px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-300 text-xs">
                                 {task.status}
                             </span>

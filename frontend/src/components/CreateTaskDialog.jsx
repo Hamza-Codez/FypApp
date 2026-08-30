@@ -17,10 +17,19 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
         }
     }, [dispatch, employees.length]);
 
-    // Get full employee objects for assigned project members
-    // If project has no assigned members, show all organizational employees as fall-back
-    const projectMembers = employees.filter(emp => project?.assigned_to?.includes(emp.id));
-    const teamMembers = projectMembers.length > 0 ? projectMembers : employees;
+    const activeEmployees = employees.filter(emp => emp.status === 'ACTIVE');
+    const projectMembers = activeEmployees.filter(emp => project?.assigned_to?.includes(emp.id));
+    const teamMembers = projectMembers.length > 0 ? projectMembers : activeEmployees;
+
+    const getActiveTasksCount = (empId) => {
+        let count = 0;
+        projects?.forEach(p => {
+            p.tasks?.forEach(t => {
+                if (t.status !== 'COMPLETED' && t.assigned_to?.includes(empId)) count++;
+            });
+        });
+        return count;
+    };
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
@@ -74,7 +83,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 dark:bg-black/60 backdrop-blur-md p-4">
-            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl w-full max-w-4xl p-8 text-zinc-900 dark:text-white relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-2xl w-full max-w-4xl p-8 text-zinc-900 dark:text-white relative animate-in fade-in zoom-in-95 duration-200">
                 <button 
                     className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors" 
                     onClick={() => setShowCreateTask(false)}
@@ -83,7 +92,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                 </button>
                 
                 <div className="flex items-center gap-3 mb-8">
-                    <div className="size-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                    <div className="size-8 rounded-md bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
                         <CalendarIcon className="size-4 stroke-[3]" />
                     </div>
                     <h2 className="text-xl font-bold tracking-tight">Create New Task</h2>
@@ -100,7 +109,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     value={formData.title} 
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
                                     placeholder="e.g. Design user interface" 
-                                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" 
+                                    className="w-full rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all" 
                                     required 
                                 />
                             </div>
@@ -112,7 +121,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     value={formData.description} 
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
                                     placeholder="Provide detailed instructions for the task..." 
-                                    className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold h-32 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none" 
+                                    className="w-full rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 text-zinc-900 dark:text-zinc-200 text-sm font-semibold h-32 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none" 
                                 />
                             </div>
 
@@ -121,14 +130,14 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                 <button 
                                     type="submit" 
                                     disabled={isSubmitting} 
-                                    className="px-10 py-2.5 rounded-lg bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 shadow-xl shadow-emerald-500/30 transition-all active:scale-[0.98] disabled:opacity-50"
+                                    className="px-10 py-2.5 rounded-md bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 shadow-xl shadow-emerald-500/30 transition-all active:scale-[0.98] disabled:opacity-50"
                                 >
                                     {isSubmitting ? "Syncing..." : "Publish Task"}
                                 </button>
                                 <button 
                                     type="button" 
                                     onClick={() => setShowCreateTask(false)} 
-                                    className="px-6 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:text-zinc-600 transition-colors"
+                                    className="px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest border border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:text-zinc-600 transition-colors"
                                 >
                                     Dismiss
                                 </button>
@@ -136,7 +145,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                         </div>
 
                         {/* Metadata Column */}
-                        <div className="space-y-5 bg-zinc-50/50 dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-900/50">
+                        <div className="space-y-5 bg-zinc-50/50 dark:bg-zinc-900/50 p-4 rounded-md border border-zinc-100 dark:border-zinc-900/50">
                             {/* Type & Priority Row */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
@@ -144,7 +153,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     <select 
                                         value={formData.type} 
                                         onChange={(e) => setFormData({ ...formData, type: e.target.value })} 
-                                        className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+                                        className="w-full rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
                                     >
                                         <option value="BUG">Bug</option>
                                         <option value="FEATURE">Feature</option>
@@ -159,7 +168,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     <select 
                                         value={formData.priority} 
                                         onChange={(e) => setFormData({ ...formData, priority: e.target.value })} 
-                                        className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+                                        className="w-full rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-2 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
                                     >
                                         <option value="LOW">Low</option>
                                         <option value="MEDIUM">Medium</option>
@@ -176,7 +185,7 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                     value={formData.due_date} 
                                     onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} 
                                     min={new Date().toISOString().split('T')[0]} 
-                                    className="w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer" 
+                                    className="w-full rounded-md bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-zinc-900 dark:text-zinc-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer" 
                                 />
                             </div>
 
@@ -194,13 +203,13 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                         </button>
                                     )}
                                 </div>
-                                <div className="space-y-2 p-2 bg-white dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 max-h-40 overflow-y-auto custom-scrollbar">
+                                <div className="space-y-2 p-2 bg-white dark:bg-zinc-950 rounded-md border border-zinc-200 dark:border-zinc-800 max-h-40 overflow-y-auto custom-scrollbar">
                                     {teamMembers.map((emp) => {
                                         const isLead = emp.id == project?.team_lead_id || (emp.id && project?.team_lead_id && emp.id.toString() === project.team_lead_id.toString());
                                         return (
                                             <label 
                                                 key={emp.id} 
-                                                className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg border shadow-sm cursor-pointer transition-all group ${
+                                                className={`flex items-center gap-2.5 px-2 py-1.5 rounded-md border shadow-sm cursor-pointer transition-all group ${
                                                     isLead 
                                                     ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50' 
                                                     : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 hover:border-emerald-500/40 hover:bg-emerald-50/10 dark:hover:bg-emerald-900/10'
@@ -230,7 +239,12 @@ export default function CreateTaskDialog({ showCreateTask, setShowCreateTask, pr
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <span className="text-[8px] font-medium text-zinc-400 uppercase tracking-widest truncate">{emp.role}</span>
+                                                    <span className="text-[8px] font-medium text-zinc-400 uppercase tracking-widest truncate">{emp.designation || emp.role || 'Employee'}</span>
+                                                </div>
+                                                <div className="ml-auto">
+                                                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getActiveTasksCount(emp.id) >= 10 ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+                                                        Load: {getActiveTasksCount(emp.id)}/10
+                                                    </span>
                                                 </div>
                                             </label>
                                         );

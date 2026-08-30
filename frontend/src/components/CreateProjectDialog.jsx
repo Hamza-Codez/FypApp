@@ -6,7 +6,10 @@ import toast from "react-hot-toast";
 
 const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
     const dispatch = useDispatch();
-    const { employees } = useSelector((state) => state.workspace);
+    const { employees, projects, workloadSettings } = useSelector((state) => state.workspace);
+    const maxMemberLoad = workloadSettings?.max_projects_member ?? 5;
+    const activeEmployees = employees.filter(emp => emp.status === 'ACTIVE');
+    const getActiveProjectsCount = (empId) => projects?.filter(p => p.status !== 'COMPLETED' && p.assigned_to?.includes(empId)).length || 0;
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
@@ -26,14 +29,42 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
             return;
         }
         setIsSubmitting(true);
-        const resultAction = await dispatch(createProject(formData));
+        
+        // Clean up optional fields so they send null instead of empty strings,
+        // which prevents Pydantic validation errors.
+        const submitData = {
+            ...formData,
+            start_date: formData.start_date || null,
+            end_date: formData.end_date || null,
+            team_lead_id: formData.team_lead_id || null,
+            description: formData.description || null,
+        };
+
+        const resultAction = await dispatch(createProject(submitData));
         setIsSubmitting(false);
         if (createProject.fulfilled.match(resultAction)) {
             toast.success("Project created successfully!");
             setIsDialogOpen(false);
             setFormData({ name: "", description: "", assigned_to: [], team_lead_id: "", priority: "MEDIUM", status: "PLANNING", start_date: "", end_date: "" });
         } else {
-            toast.error(resultAction.payload?.detail || "Failed to create project");
+            let errorMessage = "Failed to create project";
+            const payloadDetail = resultAction.payload?.detail;
+            if (typeof payloadDetail === "string") {
+                errorMessage = payloadDetail;
+            } else if (Array.isArray(payloadDetail)) {
+                errorMessage = payloadDetail
+                    .map(err => {
+                        const field = err.loc ? err.loc[err.loc.length - 1] : "field";
+                        const readableField = field.replace("_", " ").toUpperCase();
+                        return `${readableField}: ${err.msg}`;
+                    })
+                    .join("\n");
+            } else if (resultAction.payload?.message) {
+                errorMessage = resultAction.payload.message;
+            } else if (resultAction.error?.message) {
+                errorMessage = resultAction.error.message;
+            }
+            toast.error(errorMessage);
         }
     };
 
@@ -135,9 +166,8 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                     value={formData.team_lead_id}
                                     onChange={(e) => setFormData({ ...formData, team_lead_id: e.target.value })}
                                     className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md p-2 text-[10px] font-bold text-zinc-900 dark:text-white outline-none focus:border-emerald-500 transition-all appearance-none"
-                                    required
                                 >
-                                    <option value="" disabled>Select from assigned members...</option>
+                                    <option value="">None (Self-Managing Team)</option>
                                     {formData.assigned_to.map(id => {
                                         const emp = employees.find(e => e.id === id);
                                         return (
@@ -199,9 +229,9 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                     </span>
                                 </div>
                                 <div className="max-h-[100px] overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
-                                    {employees.length === 0 ? (
-                                        <p className="text-[10px] text-center py-4 text-zinc-400 uppercase font-black">No employees available</p>
-                                    ) : employees.map(emp => (
+                                    {activeEmployees.length === 0 ? (
+                                        <p className="text-[10px] text-center py-4 text-zinc-400 uppercase font-black">No active employees available</p>
+                                    ) : activeEmployees.map(emp => (
                                         <div 
                                             key={emp.id} 
                                             onClick={() => toggleEmployee(emp.id)}
@@ -211,9 +241,14 @@ const CreateProjectDialog = ({ isDialogOpen, setIsDialogOpen }) => {
                                                 : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400'
                                             }`}
                                         >
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[10px] font-bold truncate">{emp.first_name} {emp.last_name}</p>
-                                                <p className="text-[8px] uppercase tracking-wider text-zinc-400 font-medium truncate">{emp.role || 'Employee'}</p>
+                                            <div className="flex-1 min-w-0 flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-[10px] font-bold truncate">{emp.first_name} {emp.last_name}</p>
+                                                    <p className="text-[8px] uppercase tracking-wider text-zinc-400 font-medium truncate">{emp.designation || emp.role || 'Employee'}</p>
+                                                </div>
+                                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${getActiveProjectsCount(emp.id) >= maxMemberLoad ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>
+                                                    Load: {getActiveProjectsCount(emp.id)}/{maxMemberLoad}
+                                                </span>
                                             </div>
                                             {formData.assigned_to.includes(emp.id) && <div className="size-1 bg-emerald-600 rounded-full" />}
                                         </div>

@@ -1,13 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from typing import List
+from pydantic import BaseModel
+from typing import List, Optional
 import pandas as pd
 import io
+import re
 import random
 import string
-from database import users_collection, user_helper, create_notification
-from utils import get_password_hash, send_welcome_email
+from datetime import date
+from bson import ObjectId
+from database import users_collection, projects_collection, tasks_collection, user_helper, create_notification, settings_collection, log_audit
+from utils import get_password_hash, verify_password
 from deps import get_current_hr_user, get_current_user
-from models import EmployeeCreate, User, EmployeeCreateResponse, CSVImportResponse, CSVImportResult
+from models import EmployeeCreate, User, EmployeeCreateResponse, CSVImportResponse, CSVImportResult, UserStatus, WorkloadSettings, UserUpdate, PasswordChange
 
 router = APIRouter()
 
@@ -19,18 +23,25 @@ async def create_employee(
     employee: EmployeeCreate,
     hr_user: dict = Depends(get_current_hr_user)
 ):
-    existing_user = await users_collection.find_one({"email": employee.email})
-    if existing_user:
+    existing_email = await users_collection.find_one({"email": employee.email})
+    if existing_email:
         raise HTTPException(status_code=400, detail="Email already registered")
+        
+    username_to_check = employee.username or employee.email
+    existing_username = await users_collection.find_one({"username": username_to_check})
+    if existing_username:
+        raise HTTPException(status_code=400, detail="Username already taken")
 
     raw_password = employee.password or generate_random_password()
     hashed_password = get_password_hash(raw_password)
 
-    user_dict = employee.dict(exclude={"password"})
+    user_dict = employee.dict(exclude={"password", "role", "username"})
+    if not user_dict.get("onboard_date"):
+        user_dict["onboard_date"] = date.today().isoformat()
     user_dict.update({
         "password": hashed_password,
-        "username": employee.username or employee.email,
-        "role": employee.role or "EMPLOYEE",
+        "username": username_to_check,
+        "role": "EMPLOYEE",
         "created_by": hr_user["id"],
         "organization_name": hr_user.get("organization_name"),
         "must_change_password": True
@@ -68,10 +79,11 @@ async def create_employees_from_csv(
     
     # Header Mapping/Aliases
     column_mapping = {
-        'first_name': ['first_name', 'first_name', 'first_name', 'name', 'first'],
+        'first_name': ['first_name', 'first_name', 'first_name', 'name', 'first', 'team_asset', 'team_assets'],
         'last_name': ['last_name', 'last_name', 'last_name', 'surname', 'last'],
-        'email': ['email', 'email_address', 'mail'],
-        'role': ['role', 'position', 'designation', 'job_title', 'job', 'job title', 'post']
+        'email': ['email', 'email_address', 'mail', 'credentials', 'credential'],
+        'role': ['role', 'position', 'designation', 'job_title', 'job', 'job title', 'post'],
+        'onboard_date': ['onboard_date', 'onboarding_date', 'joined_date', 'join_date', 'date']
     }
 
     def get_column(mapped_name, dataframe):
@@ -80,27 +92,18 @@ async def create_employees_from_csv(
                 return alias
         return None
 
-    # Expected columns: first_name, last_name, email
-    required_mapped = ['first_name', 'last_name', 'email']
-    missing = []
+    # Resolve mappings
     actual_mapping = {}
-    
-    for req in required_mapped:
-        col = get_column(req, df)
-        if not col:
-            missing.append(req)
-        else:
-            actual_mapping[req] = col
-
-    if missing:
-        raise HTTPException(status_code=400, detail=f"CSV missing required columns: {missing}. Checked aliases: {column_mapping}")
-
-    # Map optional columns
-    optional_mapped = ['role']
-    for opt in optional_mapped:
-        col = get_column(opt, df)
+    for key in ['first_name', 'last_name', 'email', 'role', 'onboard_date']:
+        col = get_column(key, df)
         if col:
-            actual_mapping[opt] = col
+            actual_mapping[key] = col
+
+    # Validation: We must have an email (credentials) column and at least a first_name (team asset) column
+    if 'email' not in actual_mapping:
+        raise HTTPException(status_code=400, detail=f"CSV missing required email/credentials column. Aliases checked: {column_mapping['email']}")
+    if 'first_name' not in actual_mapping:
+        raise HTTPException(status_code=400, detail=f"CSV missing required name/team asset column. Aliases checked: {column_mapping['first_name']}")
 
     added_count = 0
     errors = []
@@ -110,6 +113,10 @@ async def create_employees_from_csv(
         try:
             email_col = actual_mapping['email']
             email = str(row[email_col]).strip()
+            if not re.match(r"^[\w.-]+@[\w.-]+\.\w+$", email):
+                results.append(CSVImportResult(email=email, password="", status="SKIP", error="Invalid email format"))
+                errors.append(f"Row {index}: Invalid email format for {email}.")
+                continue
             
             existing_user = await users_collection.find_one({"email": email})
             if existing_user:
@@ -121,18 +128,45 @@ async def create_employees_from_csv(
             hashed_password = get_password_hash(raw_password)
 
             first_name_col = actual_mapping['first_name']
-            last_name_col = actual_mapping['last_name']
+            full_name = str(row[first_name_col]).strip()
             
+            if 'last_name' in actual_mapping:
+                first_name = full_name
+                last_name = str(row[actual_mapping['last_name']]).strip()
+            else:
+                parts = full_name.split(maxsplit=1)
+                first_name = parts[0]
+                last_name = parts[1] if len(parts) > 1 else ""
+
+            csv_role = str(row.get(actual_mapping.get('role', ''), 'EMPLOYEE')).strip()
+            system_role = "EMPLOYEE"
+            designation = None
+            
+            if csv_role.upper() in ["HR", "EMPLOYEE"]:
+                system_role = csv_role.upper()
+            else:
+                designation = csv_role
+            
+            csv_onboard_date = None
+            if 'onboard_date' in actual_mapping:
+                onboard_col = actual_mapping['onboard_date']
+                csv_onboard_date = str(row[onboard_col]).strip()
+            
+            if not csv_onboard_date or csv_onboard_date == 'nan':
+                csv_onboard_date = date.today().isoformat()
+
             user_dict = {
-                "first_name": str(row[first_name_col]).strip(),
-                "last_name": str(row[last_name_col]).strip(),
+                "first_name": first_name,
+                "last_name": last_name,
                 "email": email,
                 "username": email, # default to email
-                "role": str(row.get(actual_mapping.get('role', ''), 'Employee')).strip(),
+                "role": system_role,
+                "designation": designation,
                 "password": hashed_password,
                 "created_by": hr_user["id"],
                 "organization_name": hr_user.get("organization_name"),
-                "must_change_password": True
+                "must_change_password": True,
+                "onboard_date": csv_onboard_date
             }
 
             await users_collection.insert_one(user_dict)
@@ -168,9 +202,6 @@ async def get_employees(current_user: dict = Depends(get_current_user)):
         
     return employees
 
-from models import EmployeeCreate, User, UserUpdate, PasswordChange
-from bson import ObjectId
-
 @router.put("/me")
 async def update_profile(
     user_data: UserUpdate,
@@ -194,8 +225,6 @@ async def change_password(
     current_user: dict = Depends(get_current_user)
 ):
     user = await users_collection.find_one({"_id": ObjectId(current_user["id"])})
-    from utils import verify_password, get_password_hash
-    
     if not verify_password(password_data.old_password, user["password"]):
         raise HTTPException(status_code=400, detail="Incorrect old password")
         
@@ -211,23 +240,36 @@ async def change_password(
 @router.delete("/employee/{employee_id}")
 async def delete_employee(
     employee_id: str,
+    replacement_id: Optional[str] = None,
     hr_user: dict = Depends(get_current_hr_user)
 ):
-    from bson import ObjectId
-    from database import projects_collection, tasks_collection
+    # 0. Check ownership FIRST
+    employee = await users_collection.find_one({"_id": ObjectId(employee_id), "created_by": hr_user["id"]})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found or not authorized")
+        
+    if replacement_id:
+        replacement = await users_collection.find_one({"_id": ObjectId(replacement_id), "created_by": hr_user["id"]})
+        if not replacement:
+            raise HTTPException(status_code=400, detail="Replacement employee not found or not authorized")
     
     # 1. Clean up project assignments and team leads
     async for project in projects_collection.find({"assigned_to": employee_id}):
         new_assigned = [uid for uid in project.get("assigned_to", []) if uid != employee_id]
+        if replacement_id and replacement_id not in new_assigned:
+            new_assigned.append(replacement_id)
+            
         update_fields = {"assigned_to": new_assigned}
         if project.get("team_lead_id") == employee_id:
-            update_fields["team_lead_id"] = ""
+            update_fields["team_lead_id"] = replacement_id if replacement_id else ""
         await projects_collection.update_one({"_id": project["_id"]}, {"$set": update_fields})
         
     # 2. Clean up task assignments
     async for task in tasks_collection.find({"assigned_to": employee_id}):
         task_assigned = task.get("assigned_to", [])
         new_task_assigned = [uid for uid in task_assigned if uid != employee_id]
+        if replacement_id and replacement_id not in new_task_assigned:
+            new_task_assigned.append(replacement_id)
         
         # If task has no assignees left, we assign to the project's team lead
         if task_assigned and not new_task_assigned:
@@ -244,9 +286,6 @@ async def delete_employee(
         "_id": ObjectId(employee_id),
         "created_by": hr_user["id"]
     })
-    
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Employee not found or not authorized")
         
     await create_notification(
         user_id=hr_user["id"],
@@ -256,6 +295,28 @@ async def delete_employee(
     )
     
     return {"message": "Employee deleted successfully"}
+
+class UserStatusUpdate(BaseModel):
+    status: UserStatus
+
+@router.put("/employee/{employee_id}/status")
+async def update_employee_status(
+    employee_id: str,
+    status_data: UserStatusUpdate,
+    hr_user: dict = Depends(get_current_hr_user)
+):
+    employee = await users_collection.find_one({"_id": ObjectId(employee_id), "created_by": hr_user["id"]})
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+        
+    await users_collection.update_one(
+        {"_id": ObjectId(employee_id)},
+        {"$set": {"status": status_data.status.value}}
+    )
+    
+    await log_audit(hr_user["id"], "UPDATE_STATUS", "USER", employee_id, {"new": status_data.status.value})
+    
+    return {"message": f"Employee status updated to {status_data.status.value}"}
 
 @router.delete("/employees/all")
 async def delete_all_employees(
@@ -271,8 +332,6 @@ async def delete_all_employees(
 
 @router.delete("/me")
 async def delete_me(current_user: dict = Depends(get_current_user)):
-    from database import projects_collection, tasks_collection
-    
     # If HR, delete all associated data
     if current_user["role"] == "HR":
         # Delete projects and their tasks
@@ -285,9 +344,6 @@ async def delete_me(current_user: dict = Depends(get_current_user)):
         # Delete associated employees
         await users_collection.delete_many({"created_by": current_user["id"]})
         
-    # Delete the user themselves
-    from bson import ObjectId
-    
     if current_user["role"] == "HR":
         await create_notification(
             user_id=current_user["id"],
@@ -299,3 +355,46 @@ async def delete_me(current_user: dict = Depends(get_current_user)):
     await users_collection.delete_one({"_id": ObjectId(current_user["id"])})
     
     return {"message": "Workspace deleted successfully"}
+
+@router.get("/workload-settings", response_model=WorkloadSettings)
+async def get_workload_settings(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] == "HR":
+        hr_id = current_user["id"]
+    else:
+        hr_id = current_user.get("created_by")
+        if not hr_id:
+            return WorkloadSettings(max_projects_lead=2, max_projects_member=5)
+            
+    doc = await settings_collection.find_one({"hr_id": hr_id})
+    if not doc:
+        return WorkloadSettings(max_projects_lead=2, max_projects_member=5)
+        
+    return WorkloadSettings(
+        max_projects_lead=doc.get("max_projects_lead", 2),
+        max_projects_member=doc.get("max_projects_member", 5)
+    )
+
+@router.put("/workload-settings", response_model=WorkloadSettings)
+async def update_workload_settings(
+    settings: WorkloadSettings,
+    current_hr: dict = Depends(get_current_hr_user)
+):
+    hr_id = current_hr["id"]
+    await settings_collection.update_one(
+        {"hr_id": hr_id},
+        {"$set": {
+            "hr_id": hr_id,
+            "max_projects_lead": settings.max_projects_lead,
+            "max_projects_member": settings.max_projects_member
+        }},
+        upsert=True
+    )
+    
+    await create_notification(
+        user_id=hr_id,
+        title="Workload Limits Updated",
+        message=f"Workload threshold set to: Lead={settings.max_projects_lead}, Member={settings.max_projects_member}.",
+        type="success"
+    )
+    
+    return settings

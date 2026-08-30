@@ -117,8 +117,15 @@ const Dashboard = () => {
                                                 <h3 className="text-[13px] font-medium text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{task.title}</h3>
                                                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400">{task.projectName}</p>
                                             </div>
-                                            <div className={`text-[10px] font-medium px-2 py-0.5 rounded border ${task.status === 'COMPLETED' ? 'bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' : 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'}`}>
-                                                {task.status || 'TODO'}
+                                            <div className="flex gap-2">
+                                                {task.due_date && new Date(task.due_date) < new Date(new Date().setHours(0,0,0,0)) && task.status !== 'COMPLETED' && (
+                                                    <div className="text-[10px] font-medium px-2 py-0.5 rounded border bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900">
+                                                        Overdue
+                                                    </div>
+                                                )}
+                                                <div className={`text-[10px] font-medium px-2 py-0.5 rounded border ${task.status === 'COMPLETED' ? 'bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' : 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'}`}>
+                                                    {task.status || 'TODO'}
+                                                </div>
                                             </div>
                                         </div>
                                     </Link>
@@ -151,26 +158,24 @@ const Dashboard = () => {
                                             <div className="size-8 bg-zinc-50 dark:bg-zinc-800 rounded flex items-center justify-center text-zinc-600 dark:text-zinc-300 border border-zinc-100 dark:border-zinc-700">
                                               <Briefcase className="size-4" />
                                             </div>
-                                            <span className="text-[10px] font-medium bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-400">
-                                                {p.status || 'Active'}
-                                            </span>
+                                            <div className="flex gap-2">
+                                                {p.is_overdue && p.status !== 'COMPLETED' && (
+                                                    <span className="text-[10px] font-medium bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/30 dark:border-red-900 dark:text-red-400 px-2 py-0.5 rounded">
+                                                        Overdue
+                                                    </span>
+                                                )}
+                                                <span className="text-[10px] font-medium bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-400">
+                                                    {p.status || 'Active'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <h3 className="text-[13px] font-semibold text-zinc-900 dark:text-white mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{p.name}</h3>
                                         <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-4 line-clamp-2">{p.description}</p>
                                         
                                         {/* Team Section */}
                                         <div className="mb-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/50">
-                                            <div className="flex items-center justify-between mb-2">
+                                            <div className="mb-2">
                                                 <span className="text-[9px] font-semibold uppercase tracking-tight text-zinc-400">Team</span>
-                                                {p.team_lead_id ? (
-                                                    <span className="text-[8px] font-black uppercase text-emerald-600 dark:text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded leading-none">
-                                                        Lead Assigned
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-[8px] font-black uppercase text-amber-600 dark:text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded leading-none">
-                                                        Lead Unassigned
-                                                    </span>
-                                                )}
                                             </div>
                                             <div className="flex flex-wrap gap-1.5 min-h-[24px]">
                                                 {assignedMembers.length === 0 ? (
@@ -237,7 +242,7 @@ const Dashboard = () => {
                                     </div>
                                     <div className="min-w-0">
                                       <p className="text-sm font-medium text-zinc-900 dark:text-white">{e.first_name} {e.last_name}</p>
-                                      <p className="text-xs text-zinc-500">{e.role || 'Member'}</p>
+                                      <p className="text-xs text-zinc-500">{e.designation || e.role || 'Member'}</p>
                                     </div>
                                   </div>
                                   <ArrowRight className="size-3.5 text-zinc-400" />

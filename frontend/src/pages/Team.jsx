@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchEmployees, fetchProjects, deleteEmployee, deleteAllEmployees, updateProject } from "../features/workspaceSlice";
+import { fetchEmployees, fetchProjects, deleteEmployee, deleteAllEmployees, updateProject, fetchWorkloadSettings, updateWorkloadSettings } from "../features/workspaceSlice";
 import toast from "react-hot-toast";
-import { Trash2, UserPlus, Search, User, Users as UsersIcon, Activity, MoreHorizontal, Mail } from "lucide-react";
+import { Trash2, UserPlus, Search, User, Users as UsersIcon, Activity, MoreHorizontal, Mail, ShieldAlert, Sliders } from "lucide-react";
 import InviteMemberDialog from "../components/InviteMemberDialog";
 import ConfirmDialog from "../components/ConfirmDialog";
 import ReassignLeadDialog from "../components/ReassignLeadDialog";
@@ -16,81 +16,109 @@ const Team = () => {
     const [confirmState, setConfirmState] = useState({ isOpen: false, type: 'danger', title: '', message: '', onConfirm: () => {} });
     const [reassignState, setReassignState] = useState({ isOpen: false, employeeId: "", employeeName: "", projects: [] });
     
-    const { employees, projects } = useSelector((state) => state.workspace);
+    const { employees, projects, workloadSettings } = useSelector((state) => state.workspace);
     const { user } = useSelector((state) => state.auth);
 
-    const filteredUsers = useMemo(() => 
-        employees.filter(
+    const maxLeadLoad = workloadSettings?.max_projects_lead ?? 2;
+    const maxMemberLoad = workloadSettings?.max_projects_member ?? 5;
+
+    const filteredUsers = useMemo(() => {
+        const list = employees.filter(
             (emp) =>
                 emp?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 emp?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 emp?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-        ),
-        [employees, searchTerm]
-    );
+        );
+        return [...list].sort((a, b) => (b.id || "").localeCompare(a.id || ""));
+    }, [employees, searchTerm]);
 
     useEffect(() => {
         dispatch(fetchEmployees());
         dispatch(fetchProjects());
+        dispatch(fetchWorkloadSettings());
     }, [dispatch]);
 
-    const handleReassignAndConfirmDelete = useCallback(async (assignments) => {
+    const handleUpdateLeadLoad = useCallback((val) => {
+        if (val < 1) return;
+        toast.promise(
+            dispatch(updateWorkloadSettings({ max_projects_lead: val, max_projects_member: maxMemberLoad })).unwrap(),
+            {
+                loading: 'Updating lead workload threshold...',
+                success: `Max lead load updated to ${val}`,
+                error: (err) => err?.detail || 'Failed to update threshold'
+            }
+        );
+    }, [dispatch, maxMemberLoad]);
+
+    const handleUpdateMemberLoad = useCallback((val) => {
+        if (val < 1) return;
+        toast.promise(
+            dispatch(updateWorkloadSettings({ max_projects_lead: maxLeadLoad, max_projects_member: val })).unwrap(),
+            {
+                loading: 'Updating member workload threshold...',
+                success: `Max member load updated to ${val}`,
+                error: (err) => err?.detail || 'Failed to update threshold'
+            }
+        );
+    }, [dispatch, maxLeadLoad]);
+
+    const handleReassignAndConfirmDelete = useCallback(async (projectUpdates, globalReplacementId) => {
         setReassignState(prev => ({ ...prev, isOpen: false }));
         
         let allSuccessful = true;
         
-        // 1. Reassign team leads first
-        for (const [projectId, newLeadId] of Object.entries(assignments)) {
-            const projectToUpdate = projects.find(p => p.id === projectId);
-            if (projectToUpdate) {
-                // If the selected new lead is not already in the project's assigned_to list,
-                // we should add them to assigned_to along with updating team_lead_id
-                let newAssigned = [...(projectToUpdate.assigned_to || [])];
-                if (newLeadId && !newAssigned.includes(newLeadId)) {
-                    newAssigned.push(newLeadId);
-                }
-                
-                const result = await dispatch(updateProject({
-                    id: projectId,
-                    team_lead_id: newLeadId,
-                    assigned_to: newAssigned
-                }));
-                
-                if (!updateProject.fulfilled.match(result)) {
-                    allSuccessful = false;
-                    toast.error(`Failed to reassign team lead for project: ${projectToUpdate.name}`);
-                }
+        // 1. Update all projects
+        for (const [projectId, updateData] of Object.entries(projectUpdates)) {
+            const submitData = {
+                id: projectId,
+                name: updateData.name || null,
+                description: updateData.description || null,
+                assigned_to: updateData.assigned_to,
+                team_lead_id: updateData.team_lead_id || null,
+                priority: updateData.priority,
+                status: updateData.status,
+                start_date: updateData.start_date || null,
+                end_date: updateData.end_date || null,
+            };
+            
+            const result = await dispatch(updateProject(submitData));
+            
+            if (!updateProject.fulfilled.match(result)) {
+                allSuccessful = false;
+                toast.error(`Failed to update project: ${updateData.name}`);
             }
         }
         
         if (!allSuccessful) {
-            toast.error("Process aborted due to reassignment failure.");
+            toast.error("Process aborted due to project update failure.");
             return;
         }
         
-        // 2. Perform the deletion
+        // 2. Perform the deletion with task/project backup replacement handover
         const employeeId = reassignState.employeeId;
         const employeeName = reassignState.employeeName;
-        const deleteResult = await dispatch(deleteEmployee(employeeId));
+        const deleteResult = await dispatch(deleteEmployee({
+            employeeId,
+            replacementId: globalReplacementId || null
+        }));
         
         if (deleteEmployee.fulfilled.match(deleteResult)) {
-            toast.success(`${employeeName} removed from team and leadership reassigned.`);
+            toast.success(`${employeeName} removed from team and projects successfully reassigned.`);
         } else {
             toast.error(deleteResult.payload?.detail || "Failed to remove employee account");
         }
-    }, [dispatch, projects, reassignState]);
+    }, [dispatch, reassignState]);
 
     const handleDelete = useCallback((id, name) => {
-        // Find if this employee is the team lead for any active projects
-        const ledProjects = projects.filter(p => p.team_lead_id === id);
+        // Find if this employee is involved in any active projects (either as team lead or assigned member)
+        const involvedProjects = projects.filter(p => p.team_lead_id === id || p.assigned_to?.includes(id));
         
-        if (ledProjects.length > 0) {
-            // Must reassign team leads first
+        if (involvedProjects.length > 0) {
             setReassignState({
                 isOpen: true,
                 employeeId: id,
                 employeeName: name,
-                projects: ledProjects
+                projects: involvedProjects
             });
         } else {
             // Normal confirm and delete
@@ -143,14 +171,6 @@ const Team = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    {user?.role === 'HR' && employees.length > 0 && (
-                        <button 
-                            onClick={handleDeleteAll} 
-                            className="flex items-center px-4 py-2 rounded-md text-[10px] font-semibold bg-white dark:bg-zinc-900 text-zinc-500 border border-zinc-200 dark:border-zinc-800 hover:border-red-200 dark:hover:border-red-900/30 hover:text-red-500 transition-all uppercase tracking-widest"
-                        >
-                            <Trash2 className="size-3.5 mr-2" /> Reset
-                        </button>
-                    )}
                     {user?.role === 'HR' && (
                         <button 
                             onClick={() => setIsDialogOpen(true)} 
@@ -184,6 +204,90 @@ const Team = () => {
                     </div>
                     <div className="size-9 rounded-md bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-500 border border-zinc-100 dark:border-zinc-800">
                         <Activity className="size-4" />
+                    </div>
+                </div>
+
+                {/* Max Lead Projects Card */}
+                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md p-5 flex flex-col justify-between group hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                    <div className="flex items-center justify-between w-full mb-1">
+                        <div>
+                            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1">Max Lead Projects</p>
+                            <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium tracking-tight">Active Projects Limit</p>
+                        </div>
+                        <div className="size-9 rounded-md bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-500 border border-zinc-100 dark:border-zinc-800">
+                            <ShieldAlert className="size-4 text-emerald-500" />
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-50 dark:border-zinc-905/10 dark:border-zinc-900">
+                        {user?.role === 'HR' ? (
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => handleUpdateLeadLoad(maxLeadLoad - 1)}
+                                    disabled={maxLeadLoad <= 1}
+                                    className="size-7 rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-50 transition-colors font-bold text-xs"
+                                >
+                                    -
+                                </button>
+                                <span className="text-sm font-semibold text-zinc-900 dark:text-white min-w-[20px] text-center">
+                                    {maxLeadLoad}
+                                </span>
+                                <button 
+                                    onClick={() => handleUpdateLeadLoad(maxLeadLoad + 1)}
+                                    className="size-7 rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors font-bold text-xs"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                                {maxLeadLoad} <span className="text-xs text-zinc-400 font-normal ml-1">projects</span>
+                            </p>
+                        )}
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 font-semibold tracking-wide uppercase">
+                            LEAD
+                        </span>
+                    </div>
+                </div>
+
+                {/* Max Member Projects Card */}
+                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md p-5 flex flex-col justify-between group hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+                    <div className="flex items-center justify-between w-full mb-1">
+                        <div>
+                            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-1">Max Member Projects</p>
+                            <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium tracking-tight">Active Projects Limit</p>
+                        </div>
+                        <div className="size-9 rounded-md bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center text-zinc-500 border border-zinc-100 dark:border-zinc-800">
+                            <Sliders className="size-4 text-emerald-500" />
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-50 dark:border-zinc-905/10 dark:border-zinc-900">
+                        {user?.role === 'HR' ? (
+                            <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => handleUpdateMemberLoad(maxMemberLoad - 1)}
+                                    disabled={maxMemberLoad <= 1}
+                                    className="size-7 rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-zinc-50 transition-colors font-bold text-xs"
+                                >
+                                    -
+                                </button>
+                                <span className="text-sm font-semibold text-zinc-900 dark:text-white min-w-[20px] text-center">
+                                    {maxMemberLoad}
+                                </span>
+                                <button 
+                                    onClick={() => handleUpdateMemberLoad(maxMemberLoad + 1)}
+                                    className="size-7 rounded-md bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors font-bold text-xs"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-sm font-semibold text-zinc-900 dark:text-white">
+                                {maxMemberLoad} <span className="text-xs text-zinc-400 font-normal ml-1">projects</span>
+                            </p>
+                        )}
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 font-semibold tracking-wide uppercase">
+                            MEMBER
+                        </span>
                     </div>
                 </div>
             </div>
@@ -220,6 +324,7 @@ const Team = () => {
                                         <th className="px-6 py-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Team Asset</th>
                                         <th className="px-6 py-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Credentials</th>
                                         <th className="px-6 py-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Designation</th>
+                                        <th className="px-6 py-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Onboard Date</th>
                                         {user?.role === 'HR' && (
                                             <th className="px-6 py-4 text-right text-[10px] font-semibold uppercase tracking-widest text-zinc-400">Actions</th>
                                         )}
@@ -246,7 +351,12 @@ const Team = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-tight rounded border bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700">
-                                                    {emp.role}
+                                                    {emp.designation || emp.role}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-[12px] font-medium text-zinc-700 dark:text-zinc-300">
+                                                    {emp.onboard_date ? new Date(emp.onboard_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                                                 </span>
                                             </td>
                                             {user?.role === 'HR' && (
@@ -285,6 +395,11 @@ const Team = () => {
                                                 <p className="text-[10px] text-zinc-400 font-medium truncate max-w-[180px]">
                                                     {emp.email}
                                                 </p>
+                                                {emp.onboard_date && (
+                                                    <p className="text-[9px] text-zinc-500 font-semibold mt-1">
+                                                        Onboarded: {new Date(emp.onboard_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                         {user?.role === 'HR' && (
@@ -298,7 +413,7 @@ const Team = () => {
                                     </div>
                                     <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
                                         <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-tight rounded border bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 border-zinc-200 dark:border-zinc-700">
-                                            {emp.role}
+                                            {emp.designation || emp.role}
                                         </span>
                                         <button className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
                                             <MoreHorizontal className="size-4" />
@@ -323,7 +438,8 @@ const Team = () => {
 
             <ReassignLeadDialog
                 isOpen={reassignState.isOpen}
-                projects={reassignState.projects}
+                projects={projects}
+                offboardProjects={reassignState.projects}
                 employees={employees}
                 employeeId={reassignState.employeeId}
                 employeeName={reassignState.employeeName}

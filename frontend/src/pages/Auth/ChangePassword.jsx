@@ -20,7 +20,7 @@ const InputField = ({ label, name, type, icon: Icon, required, autoComplete, val
                 value={value}
                 onChange={onChange}
                 autoComplete={autoComplete}
-                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-semibold text-zinc-900 dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm"
+                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md text-sm font-semibold text-zinc-900 dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-700 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm"
                 placeholder={`••••••••`}
             />
         </div>
@@ -68,7 +68,7 @@ const ChangePassword = () => {
             <div className="w-full max-w-5xl animate-in fade-in zoom-in-95 duration-500">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 px-2">
                     <div className="flex items-center gap-4">
-                        <div className="size-12 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <div className="size-12 bg-emerald-600 rounded-md flex items-center justify-center shadow-lg shadow-emerald-500/20">
                             <ShieldCheck className="size-6 text-white" />
                         </div>
                         <div className="text-left">
@@ -77,7 +77,7 @@ const ChangePassword = () => {
                         </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-md border border-zinc-200 dark:border-zinc-800">
                         <label className="flex items-center gap-2 text-xs font-bold text-zinc-500 dark:text-zinc-400 cursor-pointer group">
                             <input 
                                 type="checkbox" 
@@ -90,7 +90,7 @@ const ChangePassword = () => {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-2xl overflow-hidden">
                     <div className="p-8">
                         <form onSubmit={handleSubmit} className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
@@ -130,7 +130,7 @@ const ChangePassword = () => {
 
                             <div className="flex flex-col md:flex-row items-center gap-6 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                                 <div className="flex gap-4 flex-1">
-                                    <div className="size-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-amber-100 dark:border-amber-900/30">
+                                    <div className="size-10 bg-amber-50 dark:bg-amber-900/20 rounded-md flex items-center justify-center flex-shrink-0 border border-amber-100 dark:border-amber-900/30">
                                         <ShieldCheck className="size-5 text-amber-600 dark:text-amber-500" />
                                     </div>
                                     <div>
@@ -142,7 +142,7 @@ const ChangePassword = () => {
                                 <button 
                                     type="submit" 
                                     disabled={loading}
-                                    className="w-full md:w-auto min-w-[280px] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-8 rounded-xl font-black uppercase tracking-widest text-[11px] transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50"
+                                    className="w-full md:w-auto min-w-[280px] flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-4 px-8 rounded-md font-black uppercase tracking-widest text-[11px] transition-all shadow-xl shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50"
                                 >
                                     {loading ? (
                                         <>

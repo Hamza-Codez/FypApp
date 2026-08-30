@@ -68,7 +68,7 @@ export default function CustomModal({
       />
       
       {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl shadow-zinc-950/20 dark:shadow-none animate-in zoom-in-95 fade-in duration-300 overflow-hidden">
+      <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-2xl shadow-zinc-950/20 dark:shadow-none animate-in zoom-in-95 fade-in duration-300 overflow-hidden">
         <form onSubmit={handleSubmit}>
           <div className="p-6">
             <div className="flex items-start gap-4">

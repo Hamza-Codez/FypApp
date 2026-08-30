@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordRequestForm
+from datetime import date, timedelta
 from database import users_collection, user_helper
-from utils import verify_password, get_password_hash, create_access_token, upload_image
+from utils import verify_password, get_password_hash, create_access_token
 from deps import get_current_user
 from models import Token, User
 
@@ -27,21 +28,16 @@ async def register_hr(
 ):
     if password != confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
-        
+
     existing_user = await users_collection.find_one({"$or": [{"email": email}, {"username": username}]})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email or username already registered")
 
     profile_image_url = None
-    if profile_image:
-        profile_image_url = upload_image(profile_image.file, folder="office_management/profiles")
-        
     org_logo_url = None
-    if org_logo:
-        org_logo_url = upload_image(org_logo.file, folder="office_management/logos")
 
     hashed_password = get_password_hash(password)
-    
+
     user_dict = {
         "first_name": first_name,
         "last_name": last_name,
@@ -57,7 +53,8 @@ async def register_hr(
         "password": hashed_password,
         "role": "HR",
         "profile_image": profile_image_url,
-        "org_logo": org_logo_url
+        "org_logo": org_logo_url,
+        "onboard_date": date.today().isoformat()
     }
     
     new_user = await users_collection.insert_one(user_dict)
@@ -72,28 +69,23 @@ async def login_for_access_token(
     user = await users_collection.find_one({"username": form_data.username})
     if not user and "@" in form_data.username:
         user = await users_collection.find_one({"email": form_data.username})
-        
+
     if not user or not verify_password(form_data.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username/email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    expires_delta = timedelta(days=30) if remember_me else None
         
-    from datetime import timedelta
-    expires_delta = None
-    if remember_me:
-        expires_delta = timedelta(days=30)
-        
-    access_token = create_access_token(
-        data={"sub": user["username"]},
-        expires_delta=expires_delta
-    )
+    access_token = create_access_token(data={"sub": user["username"]}, expires_delta=expires_delta)
+    helper_user = user_helper(user)
     return {
         "access_token": access_token, 
         "token_type": "bearer", 
-        "role": user.get("role"),
-        "user": user_helper(user)
+        "role": helper_user["role"],
+        "user": helper_user
     }
 
 

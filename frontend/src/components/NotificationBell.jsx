@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, X, ExternalLink, Inbox } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotifications, markAsRead, markAllAsRead } from '../features/notificationSlice';
@@ -106,7 +106,11 @@ const NotificationBell = () => {
                                             {notification.message}
                                         </p>
                                         <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-tighter mt-1.5">
-                                            {new Date(notification.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {(() => {
+                                                const dateStr = notification.created_at;
+                                                const isoString = (typeof dateStr === "string" && !dateStr.endsWith("Z") && !dateStr.includes("+")) ? `${dateStr}Z` : dateStr;
+                                                return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                            })()}
                                         </p>
                                     </div>
                                 </div>

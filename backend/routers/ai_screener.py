@@ -3,18 +3,21 @@ from typing import List
 import os
 import io
 import json
+from datetime import datetime
+# pyrefly: ignore [missing-import]
 from groq import Groq
-from deps import get_current_hr_user
-from models import AIScreenerResponse, AIScreenerResult
-from dotenv import load_dotenv
 from bson import ObjectId
 from pydantic import BaseModel
-from database import ai_analysis_collection
+from dotenv import load_dotenv
+from database import ai_analysis_collection, log_audit
+from deps import get_current_hr_user
+from models import AIScreenerResponse, AIScreenerResult
 
 # Optional PDF/DOCX dependencies
 pypdf = None
 pypdf_import_error = None
 try:
+    # pyrefly: ignore [missing-import]
     import pypdf
 except Exception as e:
     pypdf_import_error = str(e)
@@ -52,7 +55,11 @@ async def analyze_cvs(
     files: List[UploadFile] = File(...),
     current_hr: dict = Depends(get_current_hr_user)
 ):
+    if not requirements.strip() or len(requirements.strip()) < 10:
+        raise HTTPException(status_code=400, detail="Job requirements cannot be empty or too short")
+
     results = []
+    any_truncated = False
     
     for file in files:
         content = await file.read()
@@ -79,7 +86,6 @@ async def analyze_cvs(
             
             # Text extracted successfully
         except Exception as e:
-            print(f"Error extracting text from {filename}: {str(e)}")
             results.append(AIScreenerResult(
                 candidate_name=filename,
                 score=0,
@@ -92,10 +98,13 @@ async def analyze_cvs(
             
         # Call Groq AI
         try:
-            # Clean CV text and requirements for better processing
             cv_text_clean = cv_text.strip()
             if not cv_text_clean:
                 raise ValueError("No text could be extracted from CV")
+
+            was_truncated = len(cv_text_clean) > 10000
+            if was_truncated:
+                any_truncated = True
 
             prompt = f"""
             You are an expert HR Recruiter. 
@@ -120,7 +129,7 @@ async def analyze_cvs(
             """
             
             completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": "You are a helpful HR assistant that returns only structured JSON."},
                     {"role": "user", "content": prompt}
@@ -129,10 +138,6 @@ async def analyze_cvs(
             )
             
             analysis = json.loads(completion.choices[0].message.content)
-            
-            # Save to MongoDB
-            from database import ai_analysis_collection
-            from datetime import datetime
             
             analysis_record = {
                 **analysis,
@@ -146,7 +151,6 @@ async def analyze_cvs(
             results.append(AIScreenerResult(**analysis))
             
         except Exception as e:
-            print(f"AI Error for {filename}: {str(e)}")
             results.append(AIScreenerResult(
                 candidate_name=filename,
                 score=0,
@@ -156,7 +160,7 @@ async def analyze_cvs(
                 verdict="REJECT"
             ))
             
-    return AIScreenerResponse(results=results)
+    return AIScreenerResponse(results=results, truncated=any_truncated)
 
 def analysis_helper(doc) -> dict:
     return {
@@ -170,6 +174,7 @@ def analysis_helper(doc) -> dict:
         "hr_id": doc.get("hr_id"),
         "job_requirements": doc.get("job_requirements"),
         "filename": doc.get("filename"),
+        "status": doc.get("status", "PENDING"),
         "created_at": doc.get("created_at").isoformat() if doc.get("created_at") else None
     }
 
@@ -196,4 +201,30 @@ async def delete_analyses(
         return {"message": f"Successfully deleted {result.deleted_count} record(s)"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid payload or ID: {str(e)}")
+
+class AIActionRequest(BaseModel):
+    action: str
+
+@router.post("/action/{analysis_id}")
+async def post_screening_action(
+    analysis_id: str,
+    action_req: AIActionRequest,
+    current_hr: dict = Depends(get_current_hr_user)
+):
+    analysis = await ai_analysis_collection.find_one({"_id": ObjectId(analysis_id), "hr_id": current_hr["id"]})
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis record not found")
+        
+    action = action_req.action.upper()
+    if action not in ["SHORTLIST", "REJECT", "ONBOARD"]:
+        raise HTTPException(status_code=400, detail="Invalid action")
+        
+    await ai_analysis_collection.update_one(
+        {"_id": ObjectId(analysis_id)},
+        {"$set": {"status": action}}
+    )
+    
+    await log_audit(current_hr["id"], "AI_SCREENING_ACTION", "AI_ANALYSIS", analysis_id, {"action": action})
+    
+    return {"message": f"Candidate marked as {action}", "status": action}
 

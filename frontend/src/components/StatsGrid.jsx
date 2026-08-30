@@ -97,7 +97,7 @@ export default function StatsGrid() {
                                         </p>
                                     )}
                                 </div>
-                                <div className={`p-3 rounded-xl ${bgColor} bg-opacity-20`}>
+                                <div className={`p-3 rounded-md ${bgColor} bg-opacity-20`}>
                                     <Icon size={20} className={textColor} />
                                 </div>
                             </div>

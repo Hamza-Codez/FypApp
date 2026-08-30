@@ -66,6 +66,11 @@ export default function ProjectDetail() {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
                         <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">{project.name}</h1>
+                        {project.is_overdue && project.status !== 'COMPLETED' && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                                Overdue
+                            </span>
+                        )}
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${statusColors[project.status] || statusColors.ACTIVE}`} >
                             {project.status?.replace("_", " ") || 'Active'}
                         </span>
@@ -74,7 +79,7 @@ export default function ProjectDetail() {
                 {(user?.role?.toUpperCase() === 'HR' || project.team_lead_id === user?.id) && (
                     <button 
                         onClick={() => setShowCreateTask(true)} 
-                        className="flex items-center gap-2 px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 shadow-xl shadow-zinc-500/10 active:scale-[0.98] transition-all" 
+                        className="flex items-center gap-2 px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-md bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90 shadow-xl shadow-zinc-500/10 active:scale-[0.98] transition-all" 
                     >
                         <PlusIcon className="size-3.5 stroke-[4]" />
                         New Task

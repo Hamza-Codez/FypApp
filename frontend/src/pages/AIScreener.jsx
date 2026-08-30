@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
     FileUp,
     Search,
@@ -164,6 +164,7 @@ const AIScreener = () => {
     const [loadingArchive, setLoadingArchive] = useState(false);
     const [isOnboardOpen, setIsOnboardOpen] = useState(false);
     const [onboardInitialData, setOnboardInitialData] = useState(null);
+    const [onboardingCandidate, setOnboardingCandidate] = useState(null);
     const [selectedDetailCandidate, setSelectedDetailCandidate] = useState(null);
     const [filterType, setFilterType] = useState('all');
     const [confirmState, setConfirmState] = useState({ isOpen: false, type: 'danger', title: '', message: '', confirmText: 'Confirm', onConfirm: () => {} });
@@ -181,12 +182,7 @@ const AIScreener = () => {
     const fetchArchive = async () => {
         setLoadingArchive(true);
         try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await api.get('/ai-screener/recent', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await api.get('/ai-screener/recent');
             setArchiveData(response.data);
         } catch (error) {
             toast.error("Failed to fetch archive");
@@ -205,13 +201,8 @@ const AIScreener = () => {
             confirmText: 'Discard All',
             onConfirm: async () => {
                 try {
-                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
                     const allIds = archiveData.map(d => d.id);
-                    await api.post('/ai-screener/delete', { ids: allIds }, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+                    await api.post('/ai-screener/delete', { ids: allIds });
                     toast.success("Archive fully cleared");
                     setSelectedSlots([]);
                     fetchArchive();
@@ -233,12 +224,7 @@ const AIScreener = () => {
             confirmText: 'Discard Selected',
             onConfirm: async () => {
                 try {
-                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                    await api.post('/ai-screener/delete', { ids: selectedSlots }, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
+                    await api.post('/ai-screener/delete', { ids: selectedSlots });
                     toast.success("Profiles discarded");
                     setSelectedSlots([]);
                     fetchArchive();
@@ -250,18 +236,34 @@ const AIScreener = () => {
         });
     };
 
-    const handleDeleteSingle = async (id) => {
-        try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            await api.post('/ai-screener/delete', { ids: [id] }, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+    const handleDeleteSingle = (id) => {
+        setConfirmState({
+            isOpen: true,
+            type: 'danger',
+            title: 'Discard Profile?',
+            message: 'Are you sure you want to discard this screened profile? This action is irreversible.',
+            confirmText: 'Discard Profile',
+            onConfirm: async () => {
+                try {
+                    await api.post('/ai-screener/delete', { ids: [id] });
+                    toast.success("Profile discarded successfully");
+                    setSelectedSlots(prev => prev.filter(item => item !== id));
+                    fetchArchive();
+                } catch (error) {
+                    toast.error("Failed to discard profile");
                 }
-            });
-            toast.success("Profile discarded");
+                setConfirmState(prev => ({ ...prev, isOpen: false }));
+            }
+        });
+    };
+
+    const handleAction = async (id, action) => {
+        try {
+            await api.post(`/ai-screener/action/${id}`, { action });
+            toast.success(`Profile marked as ${action}`);
             fetchArchive();
         } catch (error) {
-            toast.error("Failed to discard profile");
+            toast.error(`Failed to ${action.toLowerCase()} profile`);
         }
     };
 
@@ -275,6 +277,7 @@ const AIScreener = () => {
             role: candidate.verdict || 'Employee',
             email: ''
         });
+        setOnboardingCandidate(candidate);
         setIsOnboardOpen(true);
     };
 
@@ -301,16 +304,10 @@ const AIScreener = () => {
         });
 
         try {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const response = await api.post('/ai-screener/analyze', formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await api.post('/ai-screener/analyze', formData);
             setResults(response.data.results);
             toast.success("Analysis complete!");
         } catch (error) {
-            console.error(error);
             toast.error("Failed to analyze CVs");
         } finally {
             setLoading(false);
@@ -492,8 +489,8 @@ const AIScreener = () => {
                                             : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-xl hover:shadow-zinc-500/5'
                                     }`}>
                                         <div className="flex-1 flex flex-col">
-                                            <div className="flex justify-between items-start gap-4 mb-4">
-                                                <div className="flex items-start gap-3 min-w-0">
+                                            <div className="flex justify-between items-center gap-4 mb-4">
+                                                <div className="flex items-center gap-3 min-w-0">
                                                     {/* Checkbox */}
                                                     <button 
                                                         onClick={() => {
@@ -503,7 +500,7 @@ const AIScreener = () => {
                                                                 setSelectedSlots([...selectedSlots, candidate.id]);
                                                             }
                                                         }}
-                                                        className="text-zinc-400 hover:text-emerald-500 transition-colors shrink-0 mt-[3px]"
+                                                        className="text-zinc-400 hover:text-emerald-500 transition-colors shrink-0"
                                                     >
                                                         {isSelected ? (
                                                             <CheckSquare size={18} className="text-emerald-500" />
@@ -522,7 +519,7 @@ const AIScreener = () => {
                                                 </div>
                                                 
                                                 {/* fit badge */}
-                                                <div className={`flex items-center gap-2 px-2.5 py-1 rounded border shrink-0 mt-[1px] ${
+                                                <div className={`flex items-center gap-2 px-2.5 py-1 rounded border shrink-0 ${
                                                     candidate.score >= 80 
                                                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
                                                         : 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400'
@@ -538,43 +535,46 @@ const AIScreener = () => {
                                             </p>
                                         </div>
  
-                                        {/* Consolidate Action buttons in the same row */}
-                                        <div className="flex items-center gap-1.5 pt-3.5 border-t border-zinc-100 dark:border-zinc-900 mt-auto">
-                                            {/* Details Button (always on the left) */}
-                                            <button 
-                                                onClick={() => setSelectedDetailCandidate(candidate)}
-                                                className="flex-1 h-8 flex items-center justify-center gap-1.5 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-600 dark:text-zinc-300 text-[8.5px] font-bold uppercase tracking-[0.1em] transition-all duration-300 active:scale-[0.98] shadow-sm"
-                                            >
-                                                <BrainCircuit size={11} className="text-emerald-500" /> Details
-                                            </button>
-
+                                        {/* Improved Button Alignment & Dynamics of Display */}
+                                        <div className="flex flex-col gap-2 pt-3.5 border-t border-zinc-100 dark:border-zinc-900 mt-auto">
                                             {candidate.score >= 80 ? (
                                                 <>
-                                                    {/* Onboard Button */}
-                                                    <button 
-                                                        onClick={() => handleStartOnboarding(candidate)}
-                                                        className="flex-1 h-8 flex items-center justify-center gap-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[8.5px] font-bold uppercase tracking-[0.1em] shadow-sm active:scale-[0.98] transition-all duration-300"
-                                                    >
-                                                        <UserPlus size={11} /> Onboard
-                                                    </button>
-                                                    {/* Discard Icon Button */}
-                                                    <button 
-                                                        onClick={() => handleDeleteSingle(candidate.id)}
-                                                        className="h-8 w-8 shrink-0 flex items-center justify-center rounded border border-zinc-200 dark:border-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/20 text-zinc-400 hover:text-red-500 active:scale-[0.98] transition-all duration-300"
-                                                        title="Discard profile"
-                                                    >
-                                                        <Trash2 size={11} />
-                                                    </button>
+                                                    {/* Secondary Actions: Details */}
+                                                    <div className="flex items-center gap-2">
+                                                        <button 
+                                                            onClick={() => setSelectedDetailCandidate(candidate)}
+                                                            className="w-full h-8 flex items-center justify-center gap-1.5 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-600 dark:text-zinc-300 text-[9px] font-bold uppercase tracking-[0.1em] transition-all duration-300 active:scale-[0.98] shadow-sm"
+                                                        >
+                                                            <BrainCircuit size={12} className="text-emerald-500" /> View Details
+                                                        </button>
+                                                    </div>
+                                                    {/* Primary Actions: Onboard */}
+                                                    <div className="flex items-center gap-2">
+                                                        <button 
+                                                            onClick={() => {
+                                                                handleStartOnboarding(candidate);
+                                                            }}
+                                                            disabled={candidate.status === 'ONBOARD'}
+                                                            className={`w-full h-8 flex items-center justify-center gap-1.5 rounded text-[9px] font-bold uppercase tracking-[0.1em] shadow-sm active:scale-[0.98] transition-all duration-300 ${
+                                                                candidate.status === 'ONBOARD'
+                                                                    ? 'bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-650 border border-zinc-200 dark:border-zinc-800 cursor-not-allowed'
+                                                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                                            }`}
+                                                        >
+                                                            <UserPlus size={12} /> {candidate.status === 'ONBOARD' ? 'Onboarded' : 'Onboard'}
+                                                        </button>
+                                                    </div>
                                                 </>
                                             ) : (
-                                                /* Discard Profile for < 80% matches */
-                                                <button 
-                                                    onClick={() => handleDeleteSingle(candidate.id)}
-                                                    className="h-8 w-8 shrink-0 flex items-center justify-center rounded border border-zinc-200 dark:border-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/20 text-zinc-400 hover:text-red-500 active:scale-[0.98] transition-all duration-300"
-                                                    title="Discard profile"
-                                                >
-                                                    <Trash2 size={11} />
-                                                </button>
+                                                /* Low Match (< 80%): Simple View Details */
+                                                <div className="flex items-center gap-2">
+                                                    <button 
+                                                        onClick={() => setSelectedDetailCandidate(candidate)}
+                                                        className="w-full h-8 flex items-center justify-center gap-1.5 rounded border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-600 dark:text-zinc-300 text-[9px] font-bold uppercase tracking-[0.1em] transition-all duration-300 active:scale-[0.98] shadow-sm"
+                                                    >
+                                                        <BrainCircuit size={12} className="text-emerald-500" /> View Details
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -676,6 +676,11 @@ const AIScreener = () => {
                 isDialogOpen={isOnboardOpen} 
                 setIsDialogOpen={setIsOnboardOpen} 
                 initialData={onboardInitialData} 
+                onSuccess={() => {
+                    if (onboardingCandidate) {
+                        handleAction(onboardingCandidate.id, 'ONBOARD');
+                    }
+                }}
             />
 
             {selectedDetailCandidate && (

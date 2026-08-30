@@ -380,7 +380,10 @@ const ProjectTasks = ({ tasks, project }) => {
                                                         <div className="flex items-center justify-between text-[9px]">
                                                             <span className="font-bold text-zinc-900 dark:text-white uppercase tracking-wider">@{comment.author}</span>
                                                             <span className="font-medium text-zinc-400">
-                                                                {comment.timestamp ? format(parseISO(comment.timestamp), "MMM dd, HH:mm") : "TBD"}
+                                                                {comment.timestamp ? (() => {
+                                                                    const isoString = (typeof comment.timestamp === "string" && !comment.timestamp.endsWith("Z") && !comment.timestamp.includes("+")) ? `${comment.timestamp}Z` : comment.timestamp;
+                                                                    return format(parseISO(isoString), "MMM dd, HH:mm");
+                                                                })() : "TBD"}
                                                             </span>
                                                         </div>
                                                         <div className="bg-[#F7F7F5] dark:bg-zinc-900/20 p-2.5 rounded border border-[#E5E5E5] dark:border-zinc-850">
@@ -519,15 +522,6 @@ const ProjectTasks = ({ tasks, project }) => {
                                 <div className="mb-4 pt-3 border-t border-zinc-150 dark:border-zinc-800/50 font-sans">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-[9px] font-semibold uppercase tracking-tight text-zinc-400">Assigned Team</span>
-                                        {activeAssignees.some(id => empIdIsLead(id)) ? (
-                                            <span className="text-[8px] font-black uppercase text-emerald-600 dark:text-emerald-450 bg-emerald-500/10 px-1.5 py-0.5 rounded leading-none">
-                                                Lead Assigned
-                                            </span>
-                                        ) : (
-                                            <span className="text-[8px] font-black uppercase text-amber-600 dark:text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded leading-none">
-                                                Lead Unassigned
-                                            </span>
-                                        )}
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 min-h-[24px]">
                                         {activeAssignees.length === 0 ? (

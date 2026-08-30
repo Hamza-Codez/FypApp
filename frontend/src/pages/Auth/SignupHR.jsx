@@ -16,7 +16,7 @@ const InputField = ({ label, icon: Icon, ...props }) => (
             </div>
             <input 
                 {...props}
-                className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-zinc-800 rounded-lg py-3 pl-14 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none text-[#111111] dark:text-white"
+                className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-zinc-800 rounded-md py-3 pl-14 pr-4 text-xs focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none text-[#111111] dark:text-white"
             />
         </div>
     </div>
@@ -126,13 +126,13 @@ const SignupHR = () => {
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#111_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:40px_40px]"></div>
             </div>
 
-            <div className="w-full max-w-[1340px] h-[min(850px,92vh)] bg-white dark:bg-[#0F0F0E] rounded-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-zinc-200 dark:border-zinc-800 flex overflow-hidden relative z-10 transition-all">
+            <div className="w-full max-w-[1340px] h-[min(850px,92vh)] bg-white dark:bg-[#0F0F0E] rounded-md shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-zinc-200 dark:border-zinc-800 flex overflow-hidden relative z-10 transition-all">
                 
                 {/* Left Column: Intelligence Sidebar */}
                 <div className="w-[300px] bg-zinc-50 dark:bg-zinc-900/50 border-r border-zinc-200 dark:border-zinc-800 flex flex-col shrink-0">
                     <div className="p-8 border-b border-zinc-200 dark:border-zinc-800">
                         <Link to="/" className="flex items-center gap-3 group">
-                            <div className="size-10 bg-[#111111] dark:bg-white rounded-lg flex items-center justify-center shadow-lg shadow-black/10">
+                            <div className="size-10 bg-[#111111] dark:bg-white rounded-md flex items-center justify-center shadow-lg shadow-black/10">
                                 <LayoutGrid className="size-5 text-white dark:text-black" />
                             </div>
                             <div>
@@ -151,7 +151,7 @@ const SignupHR = () => {
                                 <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-[#111111] dark:text-white/40">User Guide</span>
                             </div>
                             
-                            <div className="bg-[#111111] dark:bg-black p-6 rounded-xl border border-white/5 shadow-2xl relative group mb-8">
+                            <div className="bg-[#111111] dark:bg-black p-6 rounded-md border border-white/5 shadow-2xl relative group mb-8">
                                 <h4 className="text-[12px] font-bold text-white mb-4 tracking-tight border-l-2 border-emerald-500 pl-4 uppercase tracking-wider">
                                     {userGuides[step].title}
                                 </h4>
@@ -169,7 +169,7 @@ const SignupHR = () => {
 
                     {/* Bottom Action Bar in Sidebar */}
                     <div className="p-6 mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100/50 dark:bg-black/20 space-y-4">
-                        <Link to="/login" className="flex items-center justify-between group p-3 rounded-lg bg-[#111111] dark:bg-white text-white dark:text-black transition-all hover:scale-[1.02] shadow-xl">
+                        <Link to="/login" className="flex items-center justify-between group p-3 rounded-md bg-[#111111] dark:bg-white text-white dark:text-black transition-all hover:scale-[1.02] shadow-xl">
                             <div className="flex items-center gap-3">
                                 <LogIn className="size-4 opacity-70 group-hover:rotate-12 transition-transform" />
                                 <div className="flex flex-col">
@@ -191,7 +191,7 @@ const SignupHR = () => {
                             <div className="absolute top-1/2 left-0 w-full h-[1px] bg-zinc-100 dark:bg-zinc-800 -translate-y-1/2 z-0"></div>
                             {steps.map((s) => (
                                 <div key={s.id} className="relative z-10 flex items-center gap-4 group cursor-pointer" onClick={() => step > s.id && setStep(s.id)}>
-                                    <div className={`size-9 rounded-lg flex items-center justify-center border-2 transition-all duration-500 ${
+                                    <div className={`size-9 rounded-md flex items-center justify-center border-2 transition-all duration-500 ${
                                         step === s.id ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 
                                         step > s.id ? 'bg-[#111111] dark:bg-white border-[#111111] dark:border-white text-white dark:text-black' : 
                                         'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-400'
@@ -266,7 +266,7 @@ const SignupHR = () => {
                                                 <span className="group-hover:text-emerald-500 transition-colors">Show Passwords</span>
                                             </label>
                                         </div>
-                                        <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-lg flex items-center gap-4 mt-4">
+                                        <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-md flex items-center gap-4 mt-4">
                                             <ShieldCheck className="size-5 text-emerald-500" />
                                             <p className="text-[9px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-relaxed">
                                                 By clicking launch, you agree to the OfficeOS Terms of Infrastructure and secure data processing protocols.
@@ -292,7 +292,7 @@ const SignupHR = () => {
                                         <button 
                                             type="button" 
                                             onClick={() => setStep(s => s + 1)}
-                                            className="bg-[#111111] dark:bg-white text-white dark:text-black px-8 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] hover:shadow-2xl transition-all flex items-center gap-3 active:scale-95 group shadow-xl"
+                                            className="bg-[#111111] dark:bg-white text-white dark:text-black px-8 py-2.5 rounded-md text-[10px] font-bold uppercase tracking-[0.2em] hover:shadow-2xl transition-all flex items-center gap-3 active:scale-95 group shadow-xl"
                                         >
                                             Next Stage <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                                         </button>
@@ -300,7 +300,7 @@ const SignupHR = () => {
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            className="bg-emerald-500 text-white px-10 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center gap-3 shadow-xl shadow-emerald-800/40 active:scale-95 disabled:opacity-50"
+                                            className="bg-emerald-500 text-white px-10 py-2.5 rounded-md text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all flex items-center gap-3 shadow-xl shadow-emerald-800/40 active:scale-95 disabled:opacity-50"
                                         >
                                             {loading ? <Loader2 className="size-4 animate-spin" /> : 'Launch Node'} <ArrowRight className="size-4" />
                                         </button>
